@@ -1,10 +1,10 @@
-import LiveTvDashboard from '../components/LiveTvDashboard';
+import ChannelGrid from '../components/ChannelGrid';
 
 export const metadata = {
-  title: 'LiveTV Pro - Stream Live TV seamlessly',
+  title: 'DD FreeDish - Stream Live TV seamlessly',
   description: 'Watch your favorite channels live in high quality. Bypassing browser restrictions elegantly.',
 };
 
 export default function Home() {
-  return <LiveTvDashboard />;
+  return <ChannelGrid />;
 }
