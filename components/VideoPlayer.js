@@ -15,7 +15,8 @@ export default function CustomVideoPlayer({ url, channelName }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [aspectRatio, setAspectRatio] = useState('auto');
   const [showAspectMenu, setShowAspectMenu] = useState(false);
-  const [quality, setQuality] = useState('medium');
+  const [quality, setQuality] = useState('Auto');
+  const [activeResolution, setActiveResolution] = useState('');
   const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +37,24 @@ export default function CustomVideoPlayer({ url, channelName }) {
     setIsLoading(true);
 
     const isHD = channelName ? (channelName.toLowerCase().includes('hd') || channelName.toLowerCase().includes('4k')) : false;
-    const proxyUrl = `/api/stream?url=${encodeURIComponent(url)}&quality=${quality}&isHD=${isHD}`;
+
+    // "Auto" logic based on user's internet speed (downlink in Mbps)
+    let requestedQuality = quality;
+    if (quality === 'Auto') {
+      if (typeof navigator !== 'undefined' && navigator.connection && navigator.connection.downlink) {
+        const mbps = navigator.connection.downlink;
+        if (mbps >= 5 && isHD) requestedQuality = '1080p';
+        else if (mbps >= 2.5 && isHD) requestedQuality = '720p';
+        else if (mbps >= 1.5) requestedQuality = '480p';
+        else if (mbps >= 0.8) requestedQuality = '360p';
+        else requestedQuality = '240p';
+      } else {
+        requestedQuality = isHD ? '720p' : '480p'; // Default fallback
+      }
+    }
+    setActiveResolution(requestedQuality);
+
+    const proxyUrl = `/api/stream?url=${encodeURIComponent(url)}&quality=${requestedQuality}&isHD=${isHD}`;
 
     if (mpegts.getFeatureList().mseLivePlayback) {
       const player = mpegts.createPlayer({
@@ -167,6 +185,11 @@ export default function CustomVideoPlayer({ url, channelName }) {
     if (aspectRatio === 'auto') return { width: '100%', height: '100%', objectFit: 'contain' };
     return { width: '100%', height: '100%', objectFit: 'contain', aspectRatio: aspectRatio };
   };
+
+  const isHDChannel = channelName ? (channelName.toLowerCase().includes('hd') || channelName.toLowerCase().includes('4k')) : false;
+  const availableQualities = isHDChannel 
+    ? ['Auto', '1080p', '720p', '480p', '360p', '240p', '144p']
+    : ['Auto', '480p', '360p', '240p', '144p'];
 
   return (
     <div
@@ -358,15 +381,28 @@ export default function CustomVideoPlayer({ url, channelName }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             {/* Quality Ratio */}
             <div style={{ position: 'relative' }}>
-              <PlayerButton
+              <button
                 onClick={() => { setShowQualityMenu(!showQualityMenu); setShowAspectMenu(false); }}
-                label="Quality"
+                title="Quality Settings"
+                style={{
+                  height: '40px', padding: '0 10px', borderRadius: '10px',
+                  border: 'none', background: 'transparent', color: '#fff',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                  transition: 'background 0.15s ease',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--player-control-hover)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="3" />
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                 </svg>
-              </PlayerButton>
+                {activeResolution && (
+                  <span style={{ fontSize: '13px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                    {quality === 'Auto' ? `Auto (${activeResolution})` : activeResolution}
+                  </span>
+                )}
+              </button>
 
               {showQualityMenu && (
                 <div
@@ -382,12 +418,12 @@ export default function CustomVideoPlayer({ url, channelName }) {
                   <div style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Quality
                   </div>
-                  {['high', 'medium', 'low'].map(q => (
+                  {availableQualities.map(q => (
                     <button
                       key={q}
                       onClick={() => { setQuality(q); setShowQualityMenu(false); }}
                       style={{
-                        display: 'block', width: '100%', padding: '8px 10px', textAlign: 'left', textTransform: 'capitalize',
+                        display: 'block', width: '100%', padding: '8px 10px', textAlign: 'left',
                         background: quality === q ? 'var(--accent-primary)' : 'transparent',
                         color: '#fff', fontSize: '13px', fontWeight: 500, border: 'none', borderRadius: '8px',
                         cursor: 'pointer', transition: 'background 0.15s ease',

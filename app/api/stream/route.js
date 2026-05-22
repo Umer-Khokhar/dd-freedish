@@ -18,21 +18,20 @@ export async function GET(req) {
   }
 
   try {
-    // Dynamic Bitrate and Resolution Scaling based on Quality & HD status
+    // Dynamic Bitrate and Resolution Scaling based on Quality
     let videoBitrate = '2500k';
     let bufSize = '5000k';
     let scaleWidth = '1280'; // 720p
 
-    if (isHD) {
-      if (quality === 'high') { videoBitrate = '4000k'; bufSize = '8000k'; scaleWidth = '1920'; } // 1080p
-      else if (quality === 'medium') { videoBitrate = '2500k'; bufSize = '5000k'; scaleWidth = '1280'; } // 720p
-      else if (quality === 'low') { videoBitrate = '1200k'; bufSize = '2400k'; scaleWidth = '854'; } // 480p
-    } else {
-      // SD Channels
-      if (quality === 'high') { videoBitrate = '2000k'; bufSize = '4000k'; scaleWidth = '1280'; } // 720p upscale/preserve
-      else if (quality === 'medium') { videoBitrate = '1200k'; bufSize = '2400k'; scaleWidth = '854'; } // 480p
-      else if (quality === 'low') { videoBitrate = '600k'; bufSize = '1200k'; scaleWidth = '640'; } // 360p
-    }
+    if (quality === '1080p') { videoBitrate = '4000k'; bufSize = '8000k'; scaleWidth = '1920'; }
+    else if (quality === '720p') { videoBitrate = '2500k'; bufSize = '5000k'; scaleWidth = '1280'; }
+    else if (quality === '480p') { videoBitrate = '1200k'; bufSize = '2400k'; scaleWidth = '854'; }
+    else if (quality === '360p') { videoBitrate = '800k'; bufSize = '1600k'; scaleWidth = '640'; }
+    else if (quality === '240p') { videoBitrate = '400k'; bufSize = '800k'; scaleWidth = '426'; }
+    else if (quality === '144p') { videoBitrate = '200k'; bufSize = '400k'; scaleWidth = '256'; }
+    // Fallbacks
+    else if (isHD) { videoBitrate = '2500k'; bufSize = '5000k'; scaleWidth = '1280'; }
+    else { videoBitrate = '1200k'; bufSize = '2400k'; scaleWidth = '854'; }
 
     const ffmpegArgs = [
       '-hide_banner',
