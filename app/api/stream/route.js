@@ -23,15 +23,16 @@ export async function GET(req) {
     let bufSize = '5000k';
     let scaleWidth = '1280'; // 720p
 
-    if (quality === '1080p') { videoBitrate = '4000k'; bufSize = '8000k'; scaleWidth = '1920'; }
+    if (quality === '1080p') { videoBitrate = '4500k'; bufSize = '9000k'; scaleWidth = '1920'; }
     else if (quality === '720p') { videoBitrate = '2500k'; bufSize = '5000k'; scaleWidth = '1280'; }
+    else if (quality === '576p') { videoBitrate = '1600k'; bufSize = '3200k'; scaleWidth = '1024'; }
     else if (quality === '480p') { videoBitrate = '1200k'; bufSize = '2400k'; scaleWidth = '854'; }
     else if (quality === '360p') { videoBitrate = '800k'; bufSize = '1600k'; scaleWidth = '640'; }
     else if (quality === '240p') { videoBitrate = '400k'; bufSize = '800k'; scaleWidth = '426'; }
     else if (quality === '144p') { videoBitrate = '200k'; bufSize = '400k'; scaleWidth = '256'; }
     // Fallbacks
     else if (isHD) { videoBitrate = '2500k'; bufSize = '5000k'; scaleWidth = '1280'; }
-    else { videoBitrate = '1200k'; bufSize = '2400k'; scaleWidth = '854'; }
+    else { videoBitrate = '1600k'; bufSize = '3200k'; scaleWidth = '1024'; }
 
     const ffmpegArgs = [
       '-hide_banner',

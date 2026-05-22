@@ -45,11 +45,12 @@ export default function CustomVideoPlayer({ url, channelName }) {
         const mbps = navigator.connection.downlink;
         if (mbps >= 5 && isHD) requestedQuality = '1080p';
         else if (mbps >= 2.5 && isHD) requestedQuality = '720p';
-        else if (mbps >= 1.5) requestedQuality = '480p';
+        else if (mbps >= 1.8 && !isHD) requestedQuality = '576p';
+        else if (mbps >= 1.2) requestedQuality = '480p';
         else if (mbps >= 0.8) requestedQuality = '360p';
         else requestedQuality = '240p';
       } else {
-        requestedQuality = isHD ? '720p' : '480p'; // Default fallback
+        requestedQuality = isHD ? '720p' : '576p'; // Default fallback
       }
     }
     setActiveResolution(requestedQuality);
@@ -128,6 +129,48 @@ export default function CustomVideoPlayer({ url, channelName }) {
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
 
+  // Keyboard accessibility
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (document.activeElement.tagName === 'INPUT') return;
+      const video = videoRef.current;
+      const container = containerRef.current;
+      if (!video) return;
+
+      switch(e.key.toLowerCase()) {
+        case ' ':
+        case 'k':
+          e.preventDefault();
+          if (video.paused) video.play().catch(()=>{});
+          else video.pause();
+          break;
+        case 'f':
+          e.preventDefault();
+          if (!document.fullscreenElement && container) {
+            container.requestFullscreen().catch(()=>{});
+          } else if (document.fullscreenElement) {
+            document.exitFullscreen().catch(()=>{});
+          }
+          break;
+        case 'm':
+          e.preventDefault();
+          video.muted = !video.muted;
+          break;
+        case 'arrowup':
+          e.preventDefault();
+          video.volume = Math.min(1, video.volume + 0.1);
+          video.muted = false;
+          break;
+        case 'arrowdown':
+          e.preventDefault();
+          video.volume = Math.max(0, video.volume - 0.1);
+          break;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Auto-hide controls
   const resetControlsTimer = useCallback(() => {
     setShowControls(true);
@@ -189,7 +232,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
   const isHDChannel = channelName ? (channelName.toLowerCase().includes('hd') || channelName.toLowerCase().includes('4k')) : false;
   const availableQualities = isHDChannel 
     ? ['Auto', '1080p', '720p', '480p', '360p', '240p', '144p']
-    : ['Auto', '480p', '360p', '240p', '144p'];
+    : ['Auto', '576p', '480p', '360p', '240p', '144p'];
 
   return (
     <div
@@ -198,7 +241,17 @@ export default function CustomVideoPlayer({ url, channelName }) {
       onMouseLeave={() => isPlaying && setShowControls(false)}
       onClick={(e) => {
         if (e.target === videoRef.current || e.target.dataset.clickarea === 'true') {
-          togglePlay();
+          const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+          if (isTouch) {
+            if (!showControls) {
+              setShowControls(true);
+              resetControlsTimer();
+            } else {
+              setShowControls(false); // On mobile, tapping video just hides controls
+            }
+          } else {
+            togglePlay(); // On desktop, clicking video pauses/plays
+          }
         }
       }}
       style={{
@@ -207,11 +260,11 @@ export default function CustomVideoPlayer({ url, channelName }) {
         aspectRatio: isFullscreen ? undefined : '16/9',
         height: isFullscreen ? '100vh' : undefined,
         background: '#000',
-        borderRadius: isFullscreen ? '0' : '20px',
         overflow: 'hidden',
         boxShadow: isFullscreen ? 'none' : '0 20px 60px rgba(0,0,0,0.3)',
         cursor: showControls ? 'default' : 'none',
       }}
+      className={isFullscreen ? 'rounded-none' : 'rounded-[16px] sm:rounded-[20px]'}
     >
       {/* Video Element */}
       <video
@@ -364,7 +417,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
 
             <input
               type="range"
-              className="volume-slider"
+              className="volume-slider hidden sm:block"
               min="0" max="1" step="0.01"
               value={isMuted ? 0 : volume}
               onChange={handleVolumeChange}
@@ -398,7 +451,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                 </svg>
                 {activeResolution && (
-                  <span style={{ fontSize: '13px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                  <span className="hidden sm:inline" style={{ fontSize: '13px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                     {quality === 'Auto' ? `Auto (${activeResolution})` : activeResolution}
                   </span>
                 )}
@@ -509,12 +562,15 @@ export default function CustomVideoPlayer({ url, channelName }) {
             pointerEvents: 'none',
           }}
         >
-          <div style={{
-            width: '72px', height: '72px', borderRadius: '50%',
-            background: 'rgba(249, 115, 22, 0.9)', backdropFilter: 'blur(8px)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 8px 32px rgba(249, 115, 22, 0.4)',
-            animation: 'fadeInUp 0.2s ease-out',
+          <div 
+            onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+            style={{
+              width: '72px', height: '72px', borderRadius: '50%',
+              background: 'rgba(249, 115, 22, 0.9)', backdropFilter: 'blur(8px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 8px 32px rgba(249, 115, 22, 0.4)',
+              animation: 'fadeInUp 0.2s ease-out',
+              pointerEvents: 'auto', cursor: 'pointer'
           }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="white" style={{ marginLeft: '3px' }}>
               <polygon points="6 3 20 12 6 21" />
