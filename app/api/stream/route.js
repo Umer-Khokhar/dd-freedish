@@ -26,12 +26,12 @@ export async function GET(req) {
       '-i', targetUrl,
       // Video transcoding:
       '-c:v', 'libx264',
-      '-preset', 'ultrafast',       // Minimize CPU usage
+      '-preset', 'superfast',       // Better quality than ultrafast, still very fast
       '-tune', 'zerolatency',       // Minimize latency for live streams
       '-vf', 'yadif',               // Hardware-agnostic Deinterlacing filter
-      '-b:v', '1500k',              // Reasonable bitrate
-      '-maxrate', '1500k',
-      '-bufsize', '3000k',
+      '-b:v', '4000k',              // Much higher bitrate for crisp HD quality
+      '-maxrate', '4500k',
+      '-bufsize', '8000k',
       // Audio transcoding:
       '-c:a', 'aac',
       '-b:a', '128k',
