@@ -15,6 +15,8 @@ export default function CustomVideoPlayer({ url, channelName }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [aspectRatio, setAspectRatio] = useState('auto');
   const [showAspectMenu, setShowAspectMenu] = useState(false);
+  const [quality, setQuality] = useState('medium');
+  const [showQualityMenu, setShowQualityMenu] = useState(false);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -33,7 +35,8 @@ export default function CustomVideoPlayer({ url, channelName }) {
     setError(null);
     setIsLoading(true);
 
-    const proxyUrl = `/api/stream?url=${encodeURIComponent(url)}`;
+    const isHD = channelName ? (channelName.toLowerCase().includes('hd') || channelName.toLowerCase().includes('4k')) : false;
+    const proxyUrl = `/api/stream?url=${encodeURIComponent(url)}&quality=${quality}&isHD=${isHD}`;
 
     if (mpegts.getFeatureList().mseLivePlayback) {
       const player = mpegts.createPlayer({
@@ -66,7 +69,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
       setError('MPEG-TS playback is not supported in this browser.');
       setIsLoading(false);
     }
-  }, [url]);
+  }, [url, quality, channelName]);
 
   // Video event listeners
   useEffect(() => {
@@ -353,10 +356,56 @@ export default function CustomVideoPlayer({ url, channelName }) {
 
           {/* Right Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {/* Quality Ratio */}
+            <div style={{ position: 'relative' }}>
+              <PlayerButton
+                onClick={() => { setShowQualityMenu(!showQualityMenu); setShowAspectMenu(false); }}
+                label="Quality"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+              </PlayerButton>
+
+              {showQualityMenu && (
+                <div
+                  className="animate-slide-down"
+                  style={{
+                    position: 'absolute', bottom: '48px', right: 0,
+                    background: 'rgba(15,23,42,0.95)', backdropFilter: 'blur(12px)',
+                    borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
+                    padding: '6px', minWidth: '110px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                  }}
+                  onClick={e => e.stopPropagation()}
+                >
+                  <div style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Quality
+                  </div>
+                  {['high', 'medium', 'low'].map(q => (
+                    <button
+                      key={q}
+                      onClick={() => { setQuality(q); setShowQualityMenu(false); }}
+                      style={{
+                        display: 'block', width: '100%', padding: '8px 10px', textAlign: 'left', textTransform: 'capitalize',
+                        background: quality === q ? 'var(--accent-primary)' : 'transparent',
+                        color: '#fff', fontSize: '13px', fontWeight: 500, border: 'none', borderRadius: '8px',
+                        cursor: 'pointer', transition: 'background 0.15s ease',
+                      }}
+                      onMouseEnter={e => { if (quality !== q) e.target.style.background = 'rgba(255,255,255,0.1)'; }}
+                      onMouseLeave={e => { if (quality !== q) e.target.style.background = 'transparent'; }}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Aspect Ratio */}
             <div style={{ position: 'relative' }}>
               <PlayerButton
-                onClick={() => setShowAspectMenu(!showAspectMenu)}
+                onClick={() => { setShowAspectMenu(!showAspectMenu); setShowQualityMenu(false); }}
                 label="Aspect Ratio"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

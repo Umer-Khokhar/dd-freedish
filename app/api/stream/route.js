@@ -10,15 +10,30 @@ export const maxDuration = 300; // 5 minutes
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const targetUrl = searchParams.get('url');
+  const quality = searchParams.get('quality') || 'medium';
+  const isHD = searchParams.get('isHD') === 'true';
 
   if (!targetUrl || !String(targetUrl).startsWith("http")) {
     return new NextResponse('Invalid stream URL', { status: 400 });
   }
 
   try {
-    // We use FFmpeg to intercept the stream and transcode it to Progressive H.264 on-the-fly.
-    // This solves BOTH the Interlaced H.264 (576i) issue AND the HEVC (H.265) HD channel issue,
-    // as Chrome's MSE doesn't support either out of the box.
+    // Dynamic Bitrate and Resolution Scaling based on Quality & HD status
+    let videoBitrate = '2500k';
+    let bufSize = '5000k';
+    let scaleWidth = '1280'; // 720p
+
+    if (isHD) {
+      if (quality === 'high') { videoBitrate = '4000k'; bufSize = '8000k'; scaleWidth = '1920'; } // 1080p
+      else if (quality === 'medium') { videoBitrate = '2500k'; bufSize = '5000k'; scaleWidth = '1280'; } // 720p
+      else if (quality === 'low') { videoBitrate = '1200k'; bufSize = '2400k'; scaleWidth = '854'; } // 480p
+    } else {
+      // SD Channels
+      if (quality === 'high') { videoBitrate = '2000k'; bufSize = '4000k'; scaleWidth = '1280'; } // 720p upscale/preserve
+      else if (quality === 'medium') { videoBitrate = '1200k'; bufSize = '2400k'; scaleWidth = '854'; } // 480p
+      else if (quality === 'low') { videoBitrate = '600k'; bufSize = '1200k'; scaleWidth = '640'; } // 360p
+    }
+
     const ffmpegArgs = [
       '-hide_banner',
       '-loglevel', 'error',
@@ -28,10 +43,10 @@ export async function GET(req) {
       '-c:v', 'libx264',
       '-preset', 'ultrafast',       // MUST be ultrafast for cloud servers (Railway/Vercel)
       '-tune', 'zerolatency',       // Minimize latency for live streams
-      '-vf', 'yadif,scale=1280:-2', // Deinterlace and scale to 720p max to save MASSIVE CPU
-      '-b:v', '2500k',              // 2.5 Mbps is excellent for 720p
-      '-maxrate', '2500k',
-      '-bufsize', '5000k',
+      '-vf', `yadif,scale='min(${scaleWidth},iw)':-2`, // Deinterlace and dynamically scale
+      '-b:v', videoBitrate,
+      '-maxrate', videoBitrate,
+      '-bufsize', bufSize,
       '-threads', '2',              // Limit CPU threads so it doesn't crash Railway container
       // Audio transcoding:
       '-c:a', 'aac',
