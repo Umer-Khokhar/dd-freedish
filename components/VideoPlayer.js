@@ -23,10 +23,8 @@ export default function CustomVideoPlayer({ url, channelName }) {
   const [currentTime, setCurrentTime] = useState(0);
 
   const aspectRatios = [
-    { label: 'Auto', value: 'auto' },
-    { label: '16:9', value: '16/9' },
-    { label: '4:3', value: '4/3' },
-    { label: '21:9', value: '21/9' },
+    { label: 'Default', value: 'auto' },
+    { label: 'Fit', value: 'fit' },
     { label: 'Fill', value: 'fill' },
   ];
 
@@ -207,13 +205,25 @@ export default function CustomVideoPlayer({ url, channelName }) {
     video.muted = val === 0;
   };
 
-  const toggleFullscreen = () => {
+  const toggleFullscreen = async () => {
     const container = containerRef.current;
     if (!container) return;
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+
     if (!document.fullscreenElement) {
-      container.requestFullscreen().catch(() => {});
+      try {
+        await container.requestFullscreen();
+        if (isMobile && screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(() => {});
+        }
+      } catch (e) {}
     } else {
-      document.exitFullscreen().catch(() => {});
+      try {
+        if (isMobile && screen.orientation && screen.orientation.unlock) {
+          screen.orientation.unlock();
+        }
+        await document.exitFullscreen();
+      } catch (e) {}
     }
   };
 
@@ -224,9 +234,21 @@ export default function CustomVideoPlayer({ url, channelName }) {
   };
 
   const getVideoStyle = () => {
-    if (aspectRatio === 'fill') return { width: '100%', height: '100%', objectFit: 'cover' };
-    if (aspectRatio === 'auto') return { width: '100%', height: '100%', objectFit: 'contain' };
-    return { width: '100%', height: '100%', objectFit: 'contain', aspectRatio: aspectRatio };
+    const centered = {
+      position: 'absolute', top: '50%', left: '50%',
+      transform: 'translate(-50%, -50%)',
+    };
+    if (aspectRatio === 'fill') return { ...centered, width: '100%', height: '100%', objectFit: 'cover' };
+    if (aspectRatio === 'fit') return { ...centered, width: '100%', height: '100%', objectFit: 'fill' };
+    if (aspectRatio === 'auto') return { ...centered, width: '100%', height: '100%', objectFit: 'contain' };
+    // For specific ratios: constrain to container, center, and crop to fill the ratio box
+    return {
+      ...centered,
+      maxWidth: '100%',
+      maxHeight: '100%',
+      aspectRatio: aspectRatio,
+      objectFit: 'cover',
+    };
   };
 
   const isHDChannel = channelName ? (channelName.toLowerCase().includes('hd') || channelName.toLowerCase().includes('4k')) : false;
@@ -257,14 +279,13 @@ export default function CustomVideoPlayer({ url, channelName }) {
       style={{
         position: 'relative',
         width: '100%',
-        aspectRatio: isFullscreen ? undefined : '16/9',
         height: isFullscreen ? '100vh' : undefined,
         background: '#000',
         overflow: 'hidden',
         boxShadow: isFullscreen ? 'none' : '0 20px 60px rgba(0,0,0,0.3)',
         cursor: showControls ? 'default' : 'none',
       }}
-      className={isFullscreen ? 'rounded-none' : 'rounded-[16px] sm:rounded-[20px]'}
+      className={`${isFullscreen ? 'rounded-none' : 'rounded-[16px] sm:rounded-[20px]'} ${!isFullscreen ? 'aspect-[4/3] sm:aspect-video' : ''}`}
     >
       {/* Video Element */}
       <video
@@ -451,7 +472,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
                   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                 </svg>
                 {activeResolution && (
-                  <span className="hidden sm:inline" style={{ fontSize: '13px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                  <span className={isFullscreen ? 'inline' : 'hidden sm:inline'} style={{ fontSize: '13px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
                     {quality === 'Auto' ? `Auto (${activeResolution})` : activeResolution}
                   </span>
                 )}

@@ -89,11 +89,11 @@ export default function WatchPage({ params }) {
         {channel && (
           <div className="px-4 sm:px-6">
             <div
-              className="animate-fade-in-up mt-5 sm:mt-6 p-5 sm:p-6 rounded-[20px] bg-white dark:bg-[#15151f] border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4 sm:gap-5 transition-colors duration-300"
+              className="animate-fade-in-up mt-3 sm:mt-6 p-3 sm:p-6 rounded-xl sm:rounded-[20px] bg-white dark:bg-[#15151f] border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3 sm:gap-5 transition-colors duration-300"
               style={{ animationDelay: "100ms" }}
             >
               {/* Channel Logo */}
-              <div className="w-20 h-20 rounded-2xl shrink-0 bg-slate-50 dark:bg-[#0a0a0f] border border-slate-200 dark:border-slate-800 flex items-center justify-center overflow-hidden">
+              <div className="w-12 h-12 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl shrink-0 bg-slate-50 dark:bg-[#0a0a0f] border border-slate-200 dark:border-slate-800 flex items-center justify-center overflow-hidden">
                 {logoSrc ? (
                   <img
                     src={logoSrc}
@@ -103,7 +103,7 @@ export default function WatchPage({ params }) {
                   />
                 ) : (
                   <span
-                    className="text-[28px] font-black text-transparent bg-clip-text"
+                    className="text-[18px] sm:text-[28px] font-black text-transparent bg-clip-text"
                     style={{ backgroundImage: "var(--accent-gradient)" }}
                   >
                     {channel.name.replace(/^(IN:|PK:)\s*/i, "").charAt(0)}
@@ -113,15 +113,15 @@ export default function WatchPage({ params }) {
 
               {/* Channel Details */}
               <div className="flex-1 min-w-0">
-                <h1 className="text-[22px] font-black text-slate-900 dark:text-white tracking-tight mb-1.5">
+                <h1 className="text-[16px] sm:text-[22px] font-black text-slate-900 dark:text-white tracking-tight mb-1 sm:mb-1.5">
                   {channel.name}
                 </h1>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-[12px] font-bold text-orange-500">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  <span className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-[11px] sm:text-[12px] font-bold text-orange-500">
                     {channel.category}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 text-[13px] font-bold text-green-500">
-                    <span className="w-2 h-2 rounded-full bg-green-500 live-pulse" />
+                  <span className="inline-flex items-center gap-1 sm:gap-1.5 text-[12px] sm:text-[13px] font-bold text-green-500">
+                    <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 live-pulse" />
                     Live Now
                   </span>
                 </div>
