@@ -26,12 +26,13 @@ export async function GET(req) {
       '-i', targetUrl,
       // Video transcoding:
       '-c:v', 'libx264',
-      '-preset', 'superfast',       // Better quality than ultrafast, still very fast
+      '-preset', 'ultrafast',       // MUST be ultrafast for cloud servers (Railway/Vercel)
       '-tune', 'zerolatency',       // Minimize latency for live streams
-      '-vf', 'yadif',               // Hardware-agnostic Deinterlacing filter
-      '-b:v', '4000k',              // Much higher bitrate for crisp HD quality
-      '-maxrate', '4500k',
-      '-bufsize', '8000k',
+      '-vf', 'yadif,scale=1280:-2', // Deinterlace and scale to 720p max to save MASSIVE CPU
+      '-b:v', '2500k',              // 2.5 Mbps is excellent for 720p
+      '-maxrate', '2500k',
+      '-bufsize', '5000k',
+      '-threads', '2',              // Limit CPU threads so it doesn't crash Railway container
       // Audio transcoding:
       '-c:a', 'aac',
       '-b:a', '128k',
