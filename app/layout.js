@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "DD FreeDish - Live Television",
-  description: "Watch your favorite DD FreeDish channels live in high quality.",
+  title: "ultra DISHTV - Live Television",
+  description:
+    "Watch your favorite ultra DISHTV channels live in high quality.",
 };
 
 export default function RootLayout({ children }) {
