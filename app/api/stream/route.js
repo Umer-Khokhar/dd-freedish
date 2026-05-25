@@ -10,51 +10,87 @@ export const maxDuration = 300; // 5 minutes
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const targetUrl = searchParams.get('url');
-  const quality = searchParams.get('quality') || 'medium';
+  const qualityParam = (searchParams.get('quality') || 'medium').toLowerCase();
   const isHD = searchParams.get('isHD') === 'true';
 
   if (!targetUrl || !String(targetUrl).startsWith("http")) {
     return new NextResponse('Invalid stream URL', { status: 400 });
   }
 
+  // Pre-validate the stream URL to catch 404/403/offline errors early
+  try {
+    const probe = await fetch(targetUrl, { 
+      method: 'HEAD', 
+      signal: AbortSignal.timeout(5000),
+      headers: { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:151.0) Gecko/20100101 Firefox/151.0' }
+    });
+    
+    if (!probe.ok) {
+      return new NextResponse(JSON.stringify({ 
+        error: `Source Error: ${probe.status} ${probe.statusText}`,
+        detail: "The stream provider is returning an error."
+      }), { status: probe.status, headers: { 'Content-Type': 'application/json' } });
+    }
+  } catch (err) {
+    // If HEAD fails, it might just be the server blocking it, we can continue or log
+    console.warn('Pre-validation HEAD failed, continuing anyway:', err.message);
+  }
+
   try {
     // Dynamic Bitrate and Resolution Scaling based on Quality
-    let videoBitrate = '2500k';
-    let bufSize = '5000k';
+    let videoBitrate = '5000k';
+    let bufSize = '10000k';
     let scaleWidth = '1280'; // 720p
 
-    if (quality === '1080p') { videoBitrate = '4500k'; bufSize = '9000k'; scaleWidth = '1920'; }
-    else if (quality === '720p') { videoBitrate = '2500k'; bufSize = '5000k'; scaleWidth = '1280'; }
-    else if (quality === '576p') { videoBitrate = '1600k'; bufSize = '3200k'; scaleWidth = '1024'; }
-    else if (quality === '480p') { videoBitrate = '1200k'; bufSize = '2400k'; scaleWidth = '854'; }
-    else if (quality === '360p') { videoBitrate = '800k'; bufSize = '1600k'; scaleWidth = '640'; }
-    else if (quality === '240p') { videoBitrate = '400k'; bufSize = '800k'; scaleWidth = '426'; }
-    else if (quality === '144p') { videoBitrate = '200k'; bufSize = '400k'; scaleWidth = '256'; }
+    if (qualityParam === 'native' || qualityParam === '1080p') {
+      // Handled separately below
+    }
+    else if (qualityParam === '720p') { videoBitrate = '5000k'; bufSize = '10000k'; scaleWidth = '1280'; }
+    else if (qualityParam === '576p') { videoBitrate = '3500k'; bufSize = '7000k'; scaleWidth = '1024'; }
+    else if (qualityParam === '480p') { videoBitrate = '2500k'; bufSize = '5000k'; scaleWidth = '854'; }
+    else if (qualityParam === '360p') { videoBitrate = '1500k'; bufSize = '3000k'; scaleWidth = '640'; }
+    else if (qualityParam === '240p') { videoBitrate = '800k'; bufSize = '1600k'; scaleWidth = '426'; }
+    else if (qualityParam === '144p') { videoBitrate = '400k'; bufSize = '800k'; scaleWidth = '256'; }
     // Fallbacks
-    else if (isHD) { videoBitrate = '2500k'; bufSize = '5000k'; scaleWidth = '1280'; }
-    else { videoBitrate = '1600k'; bufSize = '3200k'; scaleWidth = '1024'; }
+    else if (isHD) { videoBitrate = '5000k'; bufSize = '10000k'; scaleWidth = '1280'; }
+    else { videoBitrate = '3500k'; bufSize = '7000k'; scaleWidth = '1024'; }
 
-    const ffmpegArgs = [
-      '-hide_banner',
-      '-loglevel', 'error',
-      '-user_agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:151.0) Gecko/20100101 Firefox/151.0',
-      '-i', targetUrl,
-      // Video transcoding:
-      '-c:v', 'libx264',
-      '-preset', 'ultrafast',       // MUST be ultrafast for cloud servers (Railway/Vercel)
-      '-tune', 'zerolatency',       // Minimize latency for live streams
-      '-vf', `yadif,scale='min(${scaleWidth},iw)':-2`, // Deinterlace and dynamically scale
-      '-b:v', videoBitrate,
-      '-maxrate', videoBitrate,
-      '-bufsize', bufSize,
-      '-threads', '2',              // Limit CPU threads so it doesn't crash Railway container
-      // Audio transcoding:
-      '-c:a', 'aac',
-      '-b:a', '128k',
-      // Muxing to MPEG-TS stdout:
-      '-f', 'mpegts',
-      'pipe:1'
-    ];
+    let ffmpegArgs;
+    
+    if (qualityParam === 'native' || qualityParam === '1080p') {
+      ffmpegArgs = [
+        '-hide_banner',
+        '-loglevel', 'error',
+        '-user_agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:151.0) Gecko/20100101 Firefox/151.0',
+        '-i', targetUrl,
+        '-c', 'copy',
+        '-f', 'mpegts',
+        '-threads', '2',
+        'pipe:1'
+      ];
+    } else {
+      ffmpegArgs = [
+        '-hide_banner',
+        '-loglevel', 'error',
+        '-user_agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:151.0) Gecko/20100101 Firefox/151.0',
+        '-i', targetUrl,
+        // Video transcoding:
+        '-c:v', 'libx264',
+        '-preset', 'ultrafast',       // MUST be ultrafast for cloud servers (Railway/Vercel)
+        '-tune', 'zerolatency',       // Minimize latency for live streams
+        '-vf', `yadif,scale='min(${scaleWidth},iw)':-2`, // Deinterlace and dynamically scale
+        '-b:v', videoBitrate,
+        '-maxrate', videoBitrate,
+        '-bufsize', bufSize,
+        '-threads', '2',              // Limit CPU threads so it doesn't crash Railway container
+        // Audio transcoding:
+        '-c:a', 'aac',
+        '-b:a', '128k',
+        // Muxing to MPEG-TS stdout:
+        '-f', 'mpegts',
+        'pipe:1'
+      ];
+    }
 
     const ffmpeg = spawn('ffmpeg', ffmpegArgs);
 

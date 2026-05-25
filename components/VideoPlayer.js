@@ -21,6 +21,10 @@ export default function CustomVideoPlayer({ url, channelName }) {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [retryKey, setRetryKey] = useState(0);
+  const [showForceReload, setShowForceReload] = useState(false);
+  const loadingTimeoutRef = useRef(null);
+  const forceReloadTimerRef = useRef(null);
 
   const aspectRatios = [
     { label: 'Default', value: 'auto' },
@@ -28,11 +32,47 @@ export default function CustomVideoPlayer({ url, channelName }) {
     { label: 'Fill', value: 'fill' },
   ];
 
+  // Auto-hide controls
+  const resetControlsTimer = useCallback(() => {
+    setShowControls(true);
+    clearTimeout(controlsTimerRef.current);
+    if (isPlaying) {
+      controlsTimerRef.current = setTimeout(() => setShowControls(false), 3000);
+    }
+  }, [isPlaying]);
+
+  const handleReload = useCallback(() => {
+    setRetryKey(prev => prev + 1);
+    setError(null);
+    setIsLoading(true);
+    setShowForceReload(false);
+  }, []);
+
   // Initialize mpegts player
   useEffect(() => {
     if (!url || !videoRef.current) return;
     setError(null);
     setIsLoading(true);
+    setShowForceReload(false);
+
+    // Clear any existing timers
+    if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+    if (forceReloadTimerRef.current) clearTimeout(forceReloadTimerRef.current);
+
+    // Show "Force Reload" button after 6 seconds of loading
+    forceReloadTimerRef.current = setTimeout(() => {
+      if (!isPlaying && !error) {
+        setShowForceReload(true);
+      }
+    }, 6000);
+
+    // Guard: If we don't get ANY data within 9 seconds, the source is definitely broken
+    loadingTimeoutRef.current = setTimeout(() => {
+      if (!error && !isPlaying) {
+        setError('Source Offline: The channel is not sending any data.');
+        setIsLoading(false);
+      }
+    }, 9000);
 
     const isHD = channelName ? (channelName.toLowerCase().includes('hd') || channelName.toLowerCase().includes('4k')) : false;
 
@@ -41,25 +81,28 @@ export default function CustomVideoPlayer({ url, channelName }) {
     if (quality === 'Auto') {
       if (typeof navigator !== 'undefined' && navigator.connection && navigator.connection.downlink) {
         const mbps = navigator.connection.downlink;
-        if (mbps >= 5 && isHD) requestedQuality = '1080p';
-        else if (mbps >= 2.5 && isHD) requestedQuality = '720p';
-        else if (mbps >= 1.8 && !isHD) requestedQuality = '576p';
-        else if (mbps >= 1.2) requestedQuality = '480p';
-        else if (mbps >= 0.8) requestedQuality = '360p';
+        if (mbps >= 12) requestedQuality = 'native';
+        else if (mbps >= 6 && isHD) requestedQuality = '1080p';
+        else if (mbps >= 3.5 && isHD) requestedQuality = '720p';
+        else if (mbps >= 2.5 && !isHD) requestedQuality = '576p';
+        else if (mbps >= 1.8) requestedQuality = '480p';
+        else if (mbps >= 1.0) requestedQuality = '360p';
         else requestedQuality = '240p';
       } else {
-        requestedQuality = isHD ? '720p' : '576p'; // Default fallback
+        requestedQuality = isHD ? 'native' : '576p'; 
       }
     }
-    setActiveResolution(requestedQuality);
+    setActiveResolution(requestedQuality === 'native' ? 'Native' : requestedQuality);
 
-    const proxyUrl = `/api/stream?url=${encodeURIComponent(url)}&quality=${requestedQuality}&isHD=${isHD}`;
+    const proxyUrl = `/api/stream?url=${encodeURIComponent(url)}&quality=${requestedQuality}&isHD=${isHD}&retry=${retryKey}`;
 
     if (mpegts.getFeatureList().mseLivePlayback) {
       const player = mpegts.createPlayer({
         type: 'mpegts',
         isLive: true,
         url: proxyUrl,
+        enableStashBuffer: false,
+        stashInitialSize: 128,
       });
 
       player.attachMediaElement(videoRef.current);
@@ -74,11 +117,33 @@ export default function CustomVideoPlayer({ url, channelName }) {
 
       player.on(mpegts.Events.ERROR, (errorType, errorDetail, errorInfo) => {
         console.error('mpegts error:', errorType, errorDetail, errorInfo);
-        setError(`Stream Error: ${errorDetail}`);
+        
+        // If it's a network error, it might be our pre-validation error
+        if (errorType === mpegts.ErrorTypes.NETWORK_ERROR) {
+          setError(`Stream Unavailable: The server could not connect to this channel.`);
+        } else {
+          setError(`Playback Error: ${errorDetail || 'The stream payload is invalid or corrupted.'}`);
+        }
         setIsLoading(false);
       });
 
+      player.on(mpegts.Events.STATISTICS_INFO, (stats) => {
+        // If we get statistics but no actual speed, it might be a silent stall
+        if (stats.speed === 0 && !isPlaying && !error) {
+           // We could potentially trigger a timeout here if speed remains 0
+        }
+      });
+
+      player.on(mpegts.Events.METADATA_ARRIVED, () => {
+        setIsLoading(false);
+        setShowForceReload(false);
+        if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+        if (forceReloadTimerRef.current) clearTimeout(forceReloadTimerRef.current);
+      });
+
       return () => {
+        if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+        if (forceReloadTimerRef.current) clearTimeout(forceReloadTimerRef.current);
         player.destroy();
         playerRef.current = null;
       };
@@ -86,14 +151,21 @@ export default function CustomVideoPlayer({ url, channelName }) {
       setError('MPEG-TS playback is not supported in this browser.');
       setIsLoading(false);
     }
-  }, [url, quality, channelName]);
+  }, [url, quality, channelName, retryKey]);
 
   // Video event listeners
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const onPlay = () => { setIsPlaying(true); setIsLoading(false); };
+    const onPlay = () => { 
+      setIsPlaying(true); 
+      setIsLoading(false); 
+      setError(null);
+      setShowForceReload(false);
+      if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
+      if (forceReloadTimerRef.current) clearTimeout(forceReloadTimerRef.current);
+    };
     const onPause = () => setIsPlaying(false);
     const onWaiting = () => setIsLoading(true);
     const onCanPlay = () => setIsLoading(false);
@@ -127,7 +199,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, []);
 
-  // Keyboard accessibility
+  // Keyboard and Remote accessibility
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (document.activeElement.tagName === 'INPUT') return;
@@ -135,12 +207,19 @@ export default function CustomVideoPlayer({ url, channelName }) {
       const container = containerRef.current;
       if (!video) return;
 
+      // Show controls on any remote activity
+      if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'enter', ' '].includes(e.key.toLowerCase())) {
+        resetControlsTimer();
+      }
+
       switch(e.key.toLowerCase()) {
         case ' ':
-        case 'k':
-          e.preventDefault();
-          if (video.paused) video.play().catch(()=>{});
-          else video.pause();
+        case 'enter':
+          if (document.activeElement === video || document.activeElement === container || document.activeElement.tagName === 'BODY') {
+            e.preventDefault();
+            if (video.paused) video.play().catch(()=>{});
+            else video.pause();
+          }
           break;
         case 'f':
           e.preventDefault();
@@ -155,28 +234,25 @@ export default function CustomVideoPlayer({ url, channelName }) {
           video.muted = !video.muted;
           break;
         case 'arrowup':
-          e.preventDefault();
-          video.volume = Math.min(1, video.volume + 0.1);
-          video.muted = false;
+          // If controls are visible and we are focusing a slider/button, let default happen
+          // Otherwise, adjust volume
+          if (document.activeElement.tagName !== 'BUTTON' && document.activeElement.tagName !== 'INPUT') {
+            e.preventDefault();
+            video.volume = Math.min(1, video.volume + 0.1);
+            video.muted = false;
+          }
           break;
         case 'arrowdown':
-          e.preventDefault();
-          video.volume = Math.max(0, video.volume - 0.1);
+          if (document.activeElement.tagName !== 'BUTTON' && document.activeElement.tagName !== 'INPUT') {
+            e.preventDefault();
+            video.volume = Math.max(0, video.volume - 0.1);
+          }
           break;
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  // Auto-hide controls
-  const resetControlsTimer = useCallback(() => {
-    setShowControls(true);
-    clearTimeout(controlsTimerRef.current);
-    if (isPlaying) {
-      controlsTimerRef.current = setTimeout(() => setShowControls(false), 3000);
-    }
-  }, [isPlaying]);
+  }, [resetControlsTimer]);
 
   useEffect(() => {
     if (!isPlaying) setShowControls(true);
@@ -241,7 +317,6 @@ export default function CustomVideoPlayer({ url, channelName }) {
     if (aspectRatio === 'fill') return { ...centered, width: '100%', height: '100%', objectFit: 'cover' };
     if (aspectRatio === 'fit') return { ...centered, width: '100%', height: '100%', objectFit: 'fill' };
     if (aspectRatio === 'auto') return { ...centered, width: '100%', height: '100%', objectFit: 'contain' };
-    // For specific ratios: constrain to container, center, and crop to fill the ratio box
     return {
       ...centered,
       maxWidth: '100%',
@@ -253,12 +328,13 @@ export default function CustomVideoPlayer({ url, channelName }) {
 
   const isHDChannel = channelName ? (channelName.toLowerCase().includes('hd') || channelName.toLowerCase().includes('4k')) : false;
   const availableQualities = isHDChannel 
-    ? ['Auto', '1080p', '720p', '480p', '360p', '240p', '144p']
-    : ['Auto', '576p', '480p', '360p', '240p', '144p'];
+    ? ['Auto', 'Native', '1080p', '720p', '480p', '360p', '240p', '144p']
+    : ['Auto', 'Native', '576p', '480p', '360p', '240p', '144p'];
 
   return (
     <div
       ref={containerRef}
+      tabIndex="0"
       onMouseMove={resetControlsTimer}
       onMouseLeave={() => isPlaying && setShowControls(false)}
       onClick={(e) => {
@@ -269,13 +345,14 @@ export default function CustomVideoPlayer({ url, channelName }) {
               setShowControls(true);
               resetControlsTimer();
             } else {
-              setShowControls(false); // On mobile, tapping video just hides controls
+              setShowControls(false);
             }
           } else {
-            togglePlay(); // On desktop, clicking video pauses/plays
+            togglePlay();
           }
         }
       }}
+      onFocus={resetControlsTimer}
       style={{
         position: 'relative',
         width: '100%',
@@ -284,10 +361,10 @@ export default function CustomVideoPlayer({ url, channelName }) {
         overflow: 'hidden',
         boxShadow: isFullscreen ? 'none' : '0 20px 60px rgba(0,0,0,0.3)',
         cursor: showControls ? 'default' : 'none',
+        outline: 'none', // We use focus-visible for TV
       }}
-      className={`${isFullscreen ? 'rounded-none' : 'rounded-[16px] sm:rounded-[20px]'} ${!isFullscreen ? 'aspect-[4/3] sm:aspect-video' : ''}`}
+      className={`${isFullscreen ? 'rounded-none' : 'rounded-[16px] sm:rounded-[20px]'} ${!isFullscreen ? 'aspect-[4/3] sm:aspect-video' : ''} player-focus-target`}
     >
-      {/* Video Element */}
       <video
         ref={videoRef}
         autoPlay
@@ -296,18 +373,17 @@ export default function CustomVideoPlayer({ url, channelName }) {
         style={getVideoStyle()}
       />
 
-      {/* Click area overlay */}
       <div data-clickarea="true" style={{
         position: 'absolute', inset: 0, zIndex: 1,
         display: showControls || !isPlaying ? 'block' : 'block',
       }} />
 
-      {/* Loading Spinner */}
+      {/* Loading Spinner & Force Reload */}
       {isLoading && !error && (
         <div style={{
           position: 'absolute', inset: 0, zIndex: 10,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'rgba(0,0,0,0.4)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          background: 'rgba(0,0,0,0.4)', gap: '20px'
         }}>
           <div style={{
             width: '48px', height: '48px',
@@ -316,6 +392,23 @@ export default function CustomVideoPlayer({ url, channelName }) {
             borderRadius: '50%',
             animation: 'spin 0.8s linear infinite',
           }} />
+          
+          {showForceReload && (
+            <button
+              onClick={(e) => { e.stopPropagation(); handleReload(); }}
+              style={{
+                padding: '10px 20px', borderRadius: '10px',
+                background: 'rgba(255,255,255,0.1)', color: '#fff',
+                border: '1px solid rgba(255,255,255,0.2)', fontSize: '12px', fontWeight: 600,
+                cursor: 'pointer', transition: 'all 0.2s ease',
+                backdropFilter: 'blur(10px)',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+            >
+              Stream taking too long? Click to Reload
+            </button>
+          )}
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       )}
@@ -326,17 +419,33 @@ export default function CustomVideoPlayer({ url, channelName }) {
           position: 'absolute', inset: 0, zIndex: 10,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+          textAlign: 'center', padding: '20px',
         }}>
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5" style={{ marginBottom: '16px' }}>
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
-          <p style={{ color: '#ef4444', fontSize: '16px', fontWeight: 600 }}>{error}</p>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px', marginTop: '8px' }}>Try refreshing or select another channel</p>
+          <p style={{ color: '#ef4444', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>{error}</p>
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginBottom: '24px', maxWidth: '300px' }}>
+            The stream may be temporarily unavailable or your connection is unstable.
+          </p>
+          <button
+            onClick={(e) => { e.stopPropagation(); handleReload(); }}
+            style={{
+              padding: '12px 24px', borderRadius: '12px',
+              background: 'var(--accent-primary, #f97316)', color: '#fff',
+              border: 'none', fontSize: '14px', fontWeight: 700,
+              cursor: 'pointer', transition: 'all 0.2s ease',
+              boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)',
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            Reload Stream
+          </button>
         </div>
       )}
 
-      {/* No URL State */}
       {!url && (
         <div style={{
           position: 'absolute', inset: 0, zIndex: 10,
@@ -352,7 +461,6 @@ export default function CustomVideoPlayer({ url, channelName }) {
         </div>
       )}
 
-      {/* Top Bar - Channel Name */}
       <div
         style={{
           position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
@@ -377,7 +485,6 @@ export default function CustomVideoPlayer({ url, channelName }) {
         </div>
       </div>
 
-      {/* Bottom Controls */}
       <div
         style={{
           position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20,
@@ -390,18 +497,14 @@ export default function CustomVideoPlayer({ url, channelName }) {
         className="player-controls-gradient"
         onClick={e => e.stopPropagation()}
       >
-        {/* Progress Bar */}
         <div className="progress-bar-container" style={{ marginBottom: '12px' }}>
           <div className="progress-bar-track">
             <div className="progress-bar-fill" style={{ width: '100%' }} />
           </div>
         </div>
 
-        {/* Controls Row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          {/* Left Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {/* Play/Pause */}
             <PlayerButton onClick={togglePlay} label={isPlaying ? 'Pause' : 'Play'}>
               {isPlaying ? (
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
@@ -415,7 +518,6 @@ export default function CustomVideoPlayer({ url, channelName }) {
               )}
             </PlayerButton>
 
-            {/* Volume */}
             <PlayerButton onClick={toggleMute} label={isMuted ? 'Unmute' : 'Mute'}>
               {isMuted || volume === 0 ? (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -445,15 +547,12 @@ export default function CustomVideoPlayer({ url, channelName }) {
               style={{ marginLeft: '-4px' }}
             />
 
-            {/* Time */}
             <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 500, marginLeft: '8px', fontVariantNumeric: 'tabular-nums' }}>
               {formatTime(currentTime)}
             </span>
           </div>
 
-          {/* Right Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {/* Quality Ratio */}
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => { setShowQualityMenu(!showQualityMenu); setShowAspectMenu(false); }}
@@ -512,7 +611,6 @@ export default function CustomVideoPlayer({ url, channelName }) {
               )}
             </div>
 
-            {/* Aspect Ratio */}
             <div style={{ position: 'relative' }}>
               <PlayerButton
                 onClick={() => { setShowAspectMenu(!showAspectMenu); setShowQualityMenu(false); }}
@@ -558,7 +656,6 @@ export default function CustomVideoPlayer({ url, channelName }) {
               )}
             </div>
 
-            {/* Fullscreen */}
             <PlayerButton onClick={toggleFullscreen} label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
               {isFullscreen ? (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -574,7 +671,6 @@ export default function CustomVideoPlayer({ url, channelName }) {
         </div>
       </div>
 
-      {/* Center Play Button (when paused) */}
       {!isPlaying && !isLoading && !error && url && (
         <div
           style={{

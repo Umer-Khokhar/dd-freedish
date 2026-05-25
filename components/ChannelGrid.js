@@ -13,6 +13,13 @@ const formatCategory = (cat) => {
     .join(" ");
 };
 
+const getProxiedLogo = (url) => {
+  if (!url) return null;
+  if (url.startsWith("data:")) return url;
+  if (url.startsWith("https://")) return url;
+  return `/api/image?url=${encodeURIComponent(url)}`;
+};
+
 const getCategoryIcon = (catName) => {
   const name = catName.toLowerCase();
   if (name === "all")
@@ -207,6 +214,10 @@ export default function ChannelGrid() {
   const dropdownRef = useRef(null);
 
   useEffect(() => {
+    // Restore saved category on mount
+    const saved = localStorage.getItem("selectedCategory");
+    if (saved) setSelectedCategory(saved);
+
     fetch("/channels.js")
       .then((res) => res.text())
       .then((text) => {
@@ -236,16 +247,56 @@ export default function ChannelGrid() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Keyboard shortcut for search
+  // D-pad / Arrow Key Navigation for TV Remotes
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        searchInputRef.current?.focus();
+    const handleArrowNavigation = (e) => {
+      const active = document.activeElement;
+      if (!active || active.tagName === 'INPUT') return;
+
+      const items = Array.from(document.querySelectorAll('.channel-card, .category-btn, .search-input'));
+      const currentIndex = items.indexOf(active);
+
+      if (currentIndex === -1 && ['arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(e.key.toLowerCase())) {
+        items[0]?.focus();
+        return;
+      }
+
+      // Grid logic (assuming 2 to 6 columns based on screen size)
+      // For simplicity, we can use simple increment/decrement or more complex spatial logic
+      // But standard tab-like navigation with Arrows is often sufficient for TV grids
+      switch (e.key.toLowerCase()) {
+        case 'arrowright':
+          if (currentIndex < items.length - 1) {
+            e.preventDefault();
+            items[currentIndex + 1].focus();
+          }
+          break;
+        case 'arrowleft':
+          if (currentIndex > 0) {
+            e.preventDefault();
+            items[currentIndex - 1].focus();
+          }
+          break;
+        case 'arrowdown':
+          // Estimate columns (very rough)
+          const cols = window.innerWidth >= 1280 ? 6 : window.innerWidth >= 1024 ? 5 : window.innerWidth >= 768 ? 4 : 2;
+          if (currentIndex + cols < items.length) {
+            e.preventDefault();
+            items[currentIndex + cols].focus();
+          }
+          break;
+        case 'arrowup':
+          const colsUp = window.innerWidth >= 1280 ? 6 : window.innerWidth >= 1024 ? 5 : window.innerWidth >= 768 ? 4 : 2;
+          if (currentIndex - colsUp >= 0) {
+            e.preventDefault();
+            items[currentIndex - colsUp].focus();
+          }
+          break;
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+
+    window.addEventListener('keydown', handleArrowNavigation);
+    return () => window.removeEventListener('keydown', handleArrowNavigation);
   }, []);
 
   const categories = ["All", ...new Set(channels.map((c) => c.category))];
@@ -298,7 +349,7 @@ export default function ChannelGrid() {
             placeholder="Search channels..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="block w-full pl-11 pr-12 py-3.5 bg-white dark:bg-[#15151f] border border-slate-200 dark:border-slate-800 rounded-2xl text-[15px] text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all duration-300 shadow-sm hover:shadow-md"
+            className="search-input block w-full pl-11 pr-12 py-3.5 bg-white dark:bg-[#15151f] border border-slate-200 dark:border-slate-800 rounded-2xl text-[15px] text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 transition-all duration-300 shadow-sm hover:shadow-md"
           />
           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
             <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-50 dark:bg-[#0a0a0f] border border-slate-200 dark:border-slate-800 text-[11px] font-medium text-slate-500 dark:text-slate-400">
@@ -311,7 +362,7 @@ export default function ChannelGrid() {
         <div className="relative w-full md:w-[280px] z-20" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="w-full flex items-center justify-between gap-3 px-5 py-3.5 bg-white dark:bg-[#15151f] border border-slate-200 dark:border-slate-800 rounded-2xl text-[15px] font-bold text-slate-900 dark:text-white shadow-sm hover:shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500"
+            className="category-btn w-full flex items-center justify-between gap-3 px-5 py-3.5 bg-white dark:bg-[#15151f] border border-slate-200 dark:border-slate-800 rounded-2xl text-[15px] font-bold text-slate-900 dark:text-white shadow-sm hover:shadow-md transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500"
           >
             <div className="flex items-center gap-3 overflow-hidden">
               <span className="text-orange-500 shrink-0">
@@ -341,6 +392,7 @@ export default function ChannelGrid() {
                     key={cat}
                     onClick={() => {
                       setSelectedCategory(cat);
+                      localStorage.setItem("selectedCategory", cat);
                       setIsDropdownOpen(false);
                     }}
                     className={`
@@ -443,12 +495,7 @@ function ChannelCard({ channel, index }) {
   const [imgError, setImgError] = useState(false);
   const [hovered, setHovered] = useState(false);
 
-  const logoSrc =
-    channel.logo &&
-    !channel.logo.startsWith("data:image/jpeg;base64") &&
-    !imgError
-      ? channel.logo
-      : null;
+  const logoSrc = getProxiedLogo(channel.logo);
 
   return (
     <Link
@@ -463,7 +510,7 @@ function ChannelCard({ channel, index }) {
     >
       {/* Logo Area */}
       <div className="h-[140px] flex items-center justify-center bg-slate-50 dark:bg-[#0a0a0f] relative overflow-hidden p-4">
-        {logoSrc ? (
+        {logoSrc && !imgError ? (
           <img
             src={logoSrc}
             alt={channel.name}
