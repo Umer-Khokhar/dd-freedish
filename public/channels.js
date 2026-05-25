@@ -546,11 +546,11 @@ const channels = [
     url: "http://xx96.uk:8880/44676990/10884764/1058768",
   },
   {
-    id: "79",
-    name: "IN: MOTU-PATLU 24 7 HD",
-    logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ8NZLkeFgIfjSw2BsltQPzIJMdpNrFcb7Hgg&s",
+    id: "88v1",
+    name: "IN: Cartoon Network HD (RS 20)",
+    logo: "https://static.wikia.nocookie.net/logopedia/images/7/79/CNHD_Plus.svg",
     category: "IN - KIDS CARTOON - LIVE",
-    url: "http://xx96.uk:8880/44676990/10884764/1056197",
+    url: "http://line.dino.ws:80/5d67766dbb/fjwypx6t7i/643219",
   },
   {
     id: "80",
@@ -582,14 +582,15 @@ const channels = [
   },
   {
     id: "84",
-    name: "IN: DIsney Channel sd",
-    logo: "https://img-cdn.curl.pk/channels_icon_api/7b38e4f12ac8a22b416f2c15029921cb.png",
+    name: "IN: Disney",
+    logo: "https://static.wikia.nocookie.net/logopedia/images/d/d2/Dc_screen_bug_2018.png",
     category: "IN - KIDS CARTOON - LIVE",
     url: "http://xx96.uk:8880/44676990/10884764/108628",
   },
+
   {
     id: "85",
-    name: "IN: DIsney Channel HD",
+    name: "IN: Disney Channel HD",
     logo: "https://img-cdn.curl.pk/channels_icon_api/7b38e4f12ac8a22b416f2c15029921cb.png",
     category: "IN - KIDS CARTOON - LIVE",
     url: "http://xx96.uk:8880/44676990/10884764/325150", //f
@@ -602,6 +603,14 @@ const channels = [
     url: "http://xx96.uk:8880/44676990/10884764/325511",
   },
   {
+    name: "IN: POGO (RS 7)",
+    logo: "https://img-cdn.curl.pk/channels_icon_api/c6c3ed7455f000f1988f68575dcf59da.png",
+    category: "IN - KIDS CARTOON - LIVE",
+    type: "live",
+    url: "http://line.dino.ws:80/5d67766dbb/fjwypx6t7i/281410",
+    id: "68v1",
+  },
+  {
     id: "87",
     name: "IN: Cartoon Network SD",
     logo: "https://img-cdn.curl.pk/channels_icon_api/b827827b80b13904f6ca3b46f44ee8f4.png",
@@ -610,8 +619,8 @@ const channels = [
   },
   {
     id: "88",
-    name: "IN: Cartoon Network  HD+",
-    logo: "https://img-cdn.curl.pk/channels_icon_api/b827827b80b13904f6ca3b46f44ee8f4.png",
+    name: "IN: Cartoon Network HD+",
+    logo: "https://static.wikia.nocookie.net/logopedia/images/7/79/CNHD_Plus.svg",
     category: "IN - KIDS CARTOON - LIVE",
     url: "http://xx96.uk:8880/44676990/10884764/111638",
   },
@@ -621,6 +630,14 @@ const channels = [
     logo: "https://img-cdn.curl.pk/channels_icon_api/d640e4f65b8fef1077ab77d037409d4d.png",
     category: "IN - KIDS CARTOON - LIVE",
     url: "http://xx96.uk:8880/44676990/10884764/191566",
+  },
+  {
+    name: "IN: Disney (RS 12)",
+    logo: "https://static.wikia.nocookie.net/logopedia/images/d/d2/Dc_screen_bug_2018.png",
+    category: "IN - KIDS CARTOON - LIVE",
+    type: "live",
+    url: "http://line.dino.ws:80/5d67766dbb/fjwypx6t7i/281356",
+    id: "70v1",
   },
   {
     id: "90",
