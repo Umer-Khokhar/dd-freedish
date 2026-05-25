@@ -81,18 +81,17 @@ export default function CustomVideoPlayer({ url, channelName }) {
     if (quality === 'Auto') {
       if (typeof navigator !== 'undefined' && navigator.connection && navigator.connection.downlink) {
         const mbps = navigator.connection.downlink;
-        if (mbps >= 12) requestedQuality = 'native';
-        else if (mbps >= 6 && isHD) requestedQuality = '1080p';
+        if (mbps >= 6 && isHD) requestedQuality = '1080p';
         else if (mbps >= 3.5 && isHD) requestedQuality = '720p';
         else if (mbps >= 2.5 && !isHD) requestedQuality = '576p';
         else if (mbps >= 1.8) requestedQuality = '480p';
         else if (mbps >= 1.0) requestedQuality = '360p';
         else requestedQuality = '240p';
       } else {
-        requestedQuality = isHD ? 'native' : '576p'; 
+        requestedQuality = isHD ? '1080p' : '576p'; 
       }
     }
-    setActiveResolution(requestedQuality === 'native' ? 'Native' : requestedQuality);
+    setActiveResolution(requestedQuality);
 
     const proxyUrl = `/api/stream?url=${encodeURIComponent(url)}&quality=${requestedQuality}&isHD=${isHD}&retry=${retryKey}`;
 
@@ -328,8 +327,8 @@ export default function CustomVideoPlayer({ url, channelName }) {
 
   const isHDChannel = channelName ? (channelName.toLowerCase().includes('hd') || channelName.toLowerCase().includes('4k')) : false;
   const availableQualities = isHDChannel 
-    ? ['Auto', 'Native', '1080p', '720p', '480p', '360p', '240p', '144p']
-    : ['Auto', 'Native', '576p', '480p', '360p', '240p', '144p'];
+    ? ['Auto', '1080p', '720p', '480p', '360p', '240p', '144p']
+    : ['Auto', '576p', '480p', '360p', '240p', '144p'];
 
   return (
     <div
