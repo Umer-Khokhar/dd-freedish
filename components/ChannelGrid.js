@@ -213,6 +213,24 @@ export default function ChannelGrid() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Performance: Infinite Scroll
+  const [visibleCount, setVisibleCount] = useState(60);
+  const observerRef = useRef();
+  const loaderRef = (node) => {
+    if (observerRef.current) observerRef.current.disconnect();
+    observerRef.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount((prev) => prev + 60);
+      }
+    }, { rootMargin: '200px' });
+    if (node) observerRef.current.observe(node);
+  };
+
+  // Reset visible count when search or category changes
+  useEffect(() => {
+    setVisibleCount(60);
+  }, [searchQuery, selectedCategory]);
+
   useEffect(() => {
     // Restore saved category on mount
     const saved = localStorage.getItem("selectedCategory");
@@ -468,11 +486,19 @@ export default function ChannelGrid() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
-          {filtered.map((channel, idx) => (
-            <ChannelCard key={channel.id} channel={channel} index={idx} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+            {filtered.slice(0, visibleCount).map((channel, idx) => (
+              <ChannelCard key={channel.id} channel={channel} index={idx} />
+            ))}
+          </div>
+          {/* Infinite Scroll Loader */}
+          {visibleCount < filtered.length && (
+            <div ref={loaderRef} className="w-full h-24 flex items-center justify-center mt-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+            </div>
+          )}
+        </>
       )}
 
       <style jsx>{`

@@ -57,17 +57,27 @@ export async function GET(req) {
     else { crf = '23'; maxRate = ''; bufSize = '8000k'; scaleWidth = '1024'; }
 
     // Always use transcoding with libx264 for Chrome compatibility
+    // Added advanced flags to prevent mpegts.js SourceBuffer crashes (PTS/DTS errors)
     const ffmpegArgs = [
       '-hide_banner',
       '-loglevel', 'error',
       '-user_agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:151.0) Gecko/20100101 Firefox/151.0',
+      '-fflags', '+genpts',         // Generate valid presentation timestamps
+      '-reconnect', '1',            // Reconnect if stream drops
+      '-reconnect_streamed', '1',
+      '-reconnect_delay_max', '2',
       '-i', targetUrl,
       // Video transcoding:
       '-c:v', 'libx264',
-      '-preset', 'veryfast',        // Better quality than ultrafast while still being fast for live streams
-      '-tune', 'zerolatency',       // Minimize latency for live streams
-      '-vf', `yadif,scale='min(${scaleWidth},iw)':-2`, // Deinterlace and dynamically scale
-      '-crf', crf
+      '-preset', 'veryfast',
+      '-tune', 'zerolatency',
+      '-vf', `yadif,scale='min(${scaleWidth},iw)':-2`,
+      '-crf', crf,
+      '-g', '50',                   // Force keyframe every 2 seconds (crucial for MSE/SourceBuffer)
+      '-keyint_min', '50',
+      '-sc_threshold', '0',         // Strict GOP size
+      '-r', '25',                   // Force constant frame rate to fix variable framerate crashes
+      '-pix_fmt', 'yuv420p'         // Ensure widely supported pixel format
     ];
 
     if (maxRate) {
@@ -82,8 +92,12 @@ export async function GET(req) {
       // Audio transcoding:
       '-c:a', 'aac',
       '-b:a', '128k',
+      '-ac', '2',                   // Force stereo (5.1 audio can crash browser players)
+      '-ar', '44100',               // Force standard sample rate
+      '-af', 'aresample=async=1',   // Stretch/squeeze audio to maintain sync with video
       // Muxing to MPEG-TS stdout:
       '-f', 'mpegts',
+      '-muxdelay', '0.1',           // Prevent TS muxing buffer underflows
       'pipe:1'
     );
 
