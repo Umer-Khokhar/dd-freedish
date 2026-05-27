@@ -9,12 +9,33 @@ export const maxDuration = 300; // 5 minutes
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
-  const targetUrl = searchParams.get('url');
+  let targetUrl = searchParams.get('url');
   const qualityParam = (searchParams.get('quality') || 'medium').toLowerCase();
   const isHD = searchParams.get('isHD') === 'true';
 
   if (!targetUrl || !String(targetUrl).startsWith("http")) {
     return new NextResponse('Invalid stream URL', { status: 400 });
+  }
+
+  // Inject dynamic credentials from settings if placeholders exist
+  if (targetUrl.includes('{USERNAME}') && targetUrl.includes('{PASSWORD}')) {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const settingsPath = path.join(process.cwd(), 'data', 'settings.json');
+      if (fs.existsSync(settingsPath)) {
+        const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+        const urlObj = new URL(targetUrl);
+        const providerHost = urlObj.host; // e.g., xx96.uk:8880
+
+        if (settings.providers && settings.providers[providerHost]) {
+          const { username, password } = settings.providers[providerHost];
+          targetUrl = targetUrl.replace('{USERNAME}', username).replace('{PASSWORD}', password);
+        }
+      }
+    } catch (err) {
+      console.error('Error injecting credentials:', err);
+    }
   }
 
   // Pre-validate the stream URL to catch 404/403/offline errors early

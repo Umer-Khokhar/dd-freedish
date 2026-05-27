@@ -526,27 +526,30 @@ function ChannelCard({ channel, index }) {
   return (
     <Link
       href={`/watch/${channel.id}`}
-      className="channel-card group block rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#15151f] shadow-sm hover:shadow-md hover:border-orange-500/30 transition-all duration-300 overflow-hidden"
+      className="channel-card group block rounded-2xl bg-white dark:bg-[#12121a]/60 backdrop-blur-sm border border-slate-200 dark:border-white/5 shadow-md dark:shadow-lg hover:shadow-xl dark:hover:shadow-[0_8px_30px_rgba(249,115,22,0.15)] hover:border-orange-400 dark:hover:border-orange-500/50 transition-all duration-500 overflow-hidden relative"
       style={{
         animationDelay: `${Math.min(index * 30, 600)}ms`,
-        transform: hovered ? "translateY(-6px)" : "translateY(0)",
+        transform: hovered ? "translateY(-8px) scale(1.02)" : "translateY(0) scale(1)",
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
+      {/* Background Glow on Hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 dark:from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0 pointer-events-none" />
+
       {/* Logo Area */}
-      <div className="h-[140px] flex items-center justify-center bg-slate-50 dark:bg-[#0a0a0f] relative overflow-hidden p-4">
+      <div className="h-[150px] flex items-center justify-center bg-slate-50 dark:bg-[#0a0a0f]/80 relative overflow-hidden p-6 z-10 border-b border-slate-100 dark:border-white/5">
         {logoSrc && !imgError ? (
           <img
             src={logoSrc}
             alt={channel.name}
             onError={() => setImgError(true)}
-            className={`w-full h-full object-contain transition-transform duration-500 ${hovered ? "scale-110" : "scale-100"}`}
+            className={`w-full h-full object-contain drop-shadow-md dark:drop-shadow-xl transition-all duration-700 ${hovered ? "scale-110" : "scale-100"}`}
             loading="lazy"
           />
         ) : (
           <div
-            className="w-[72px] h-[72px] rounded-2xl flex items-center justify-center text-white text-[28px] font-black"
+            className="w-[80px] h-[80px] rounded-2xl flex items-center justify-center text-white text-[32px] font-black shadow-inner"
             style={{ background: "var(--accent-gradient)" }}
           >
             {channel.name.replace(/^(IN:|PK:)\s*/i, "").charAt(0)}
@@ -554,27 +557,27 @@ function ChannelCard({ channel, index }) {
         )}
 
         {/* Live Badge */}
-        <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/10">
+        <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
           <span
-            className="w-1.5 h-1.5 rounded-full live-pulse"
-            style={{ background: "var(--live-dot)" }}
+            className="w-2 h-2 rounded-full live-pulse"
+            style={{ background: "var(--live-dot)", boxShadow: "0 0 10px #22c55e" }}
           />
-          <span className="text-[9px] font-bold text-white uppercase tracking-wider">
+          <span className="text-[10px] font-black text-white uppercase tracking-widest">
             Live
           </span>
         </div>
 
         {/* Hover Overlay Play Button */}
         <div
-          className={`absolute inset-0 bg-black/20 flex items-center justify-center transition-opacity duration-300 ${hovered ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center transition-all duration-500 ${hovered ? "opacity-100" : "opacity-0"}`}
         >
-          <div className="w-12 h-12 rounded-full bg-orange-500/90 backdrop-blur flex items-center justify-center shadow-lg transform transition-transform duration-300 scale-90 group-hover:scale-100">
+          <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.6)] transform transition-transform duration-500 ${hovered ? "scale-100" : "scale-50"}`}>
             <svg
-              width="20"
-              height="20"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
               fill="white"
-              className="ml-1"
+              className="ml-1.5"
             >
               <polygon points="5 3 19 12 5 21 5 3" />
             </svg>
@@ -583,13 +586,13 @@ function ChannelCard({ channel, index }) {
       </div>
 
       {/* Channel Info */}
-      <div className="p-4 border-t text-center border-slate-200 dark:border-slate-800 bg-white dark:bg-[#15151f]">
-        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white leading-tight truncate mb-1.5">
+      <div className="p-4 text-center relative z-10">
+        <h3 className="text-[16px] font-black text-slate-900 dark:text-white leading-tight truncate mb-2 group-hover:text-orange-500 transition-colors">
           {channel.name}
         </h3>
-        <div className="flex items-center justify-center gap-1.5 text-[12px] font-semibold text-slate-500 dark:text-slate-400 truncate">
-          <span className="text-orange-500 shrink-0">{getCategoryIcon(formatCategory(channel.category))}</span>
-          <span className="truncate">{formatCategory(channel.category)}</span>
+        <div className="flex items-center justify-center gap-2 text-[12px] font-bold text-slate-500 dark:text-slate-400 truncate">
+          <span className="text-orange-500/80 shrink-0">{getCategoryIcon(formatCategory(channel.category))}</span>
+          <span className="truncate uppercase tracking-wider text-[10px]">{formatCategory(channel.category)}</span>
         </div>
       </div>
     </Link>
