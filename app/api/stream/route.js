@@ -38,20 +38,23 @@ export async function GET(req) {
 
   try {
     // Dynamic Bitrate and Resolution Scaling based on Quality
-    let videoBitrate = '5000k';
-    let bufSize = '10000k';
-    let scaleWidth = '1280'; // 720p
+    // Use CRF (Constant Rate Factor) instead of forced high bitrates to keep the quality 
+    // close to the actual stream without bloating the bitrate and causing buffering.
+    let crf = '23'; // Default CRF for good quality
+    let maxRate = ''; // Empty string means no maxrate padding
+    let bufSize = '8000k';
+    let scaleWidth = '1920';
 
-    if (qualityParam === '1080p') { videoBitrate = '12000k'; bufSize = '24000k'; scaleWidth = '1920'; }
-    else if (qualityParam === '720p') { videoBitrate = '8000k'; bufSize = '16000k'; scaleWidth = '1280'; }
-    else if (qualityParam === '576p') { videoBitrate = '3500k'; bufSize = '7000k'; scaleWidth = '1024'; }
-    else if (qualityParam === '480p') { videoBitrate = '2500k'; bufSize = '5000k'; scaleWidth = '854'; }
-    else if (qualityParam === '360p') { videoBitrate = '1500k'; bufSize = '3000k'; scaleWidth = '640'; }
-    else if (qualityParam === '240p') { videoBitrate = '800k'; bufSize = '1600k'; scaleWidth = '426'; }
-    else if (qualityParam === '144p') { videoBitrate = '400k'; bufSize = '800k'; scaleWidth = '256'; }
+    if (qualityParam === '1080p') { crf = '23'; maxRate = ''; bufSize = '16000k'; scaleWidth = '1920'; }
+    else if (qualityParam === '720p') { crf = '25'; maxRate = '3000k'; bufSize = '6000k'; scaleWidth = '1280'; }
+    else if (qualityParam === '576p') { crf = '23'; maxRate = ''; bufSize = '8000k'; scaleWidth = '1024'; }
+    else if (qualityParam === '480p') { crf = '26'; maxRate = '1500k'; bufSize = '3000k'; scaleWidth = '854'; }
+    else if (qualityParam === '360p') { crf = '28'; maxRate = '800k'; bufSize = '1600k'; scaleWidth = '640'; }
+    else if (qualityParam === '240p') { crf = '30'; maxRate = '500k'; bufSize = '1000k'; scaleWidth = '426'; }
+    else if (qualityParam === '144p') { crf = '32'; maxRate = '300k'; bufSize = '600k'; scaleWidth = '256'; }
     // Fallbacks
-    else if (isHD) { videoBitrate = '15000k'; bufSize = '30000k'; scaleWidth = '1920'; }
-    else { videoBitrate = '3500k'; bufSize = '7000k'; scaleWidth = '1024'; }
+    else if (isHD) { crf = '23'; maxRate = ''; bufSize = '16000k'; scaleWidth = '1920'; }
+    else { crf = '23'; maxRate = ''; bufSize = '8000k'; scaleWidth = '1024'; }
 
     // Always use transcoding with libx264 for Chrome compatibility
     const ffmpegArgs = [
@@ -64,9 +67,17 @@ export async function GET(req) {
       '-preset', 'veryfast',        // Better quality than ultrafast while still being fast for live streams
       '-tune', 'zerolatency',       // Minimize latency for live streams
       '-vf', `yadif,scale='min(${scaleWidth},iw)':-2`, // Deinterlace and dynamically scale
-      '-b:v', videoBitrate,
-      '-maxrate', videoBitrate,
-      '-bufsize', bufSize,
+      '-crf', crf
+    ];
+
+    if (maxRate) {
+      ffmpegArgs.push('-maxrate', maxRate, '-bufsize', bufSize);
+    } else {
+      // Just supply a buffer size for smoothing if no maxrate is strictly enforced
+      ffmpegArgs.push('-bufsize', bufSize);
+    }
+
+    ffmpegArgs.push(
       '-threads', '2',              // Limit CPU threads so it doesn't crash Railway container
       // Audio transcoding:
       '-c:a', 'aac',
@@ -74,7 +85,7 @@ export async function GET(req) {
       // Muxing to MPEG-TS stdout:
       '-f', 'mpegts',
       'pipe:1'
-    ];
+    );
 
     const ffmpeg = spawn('ffmpeg', ffmpegArgs);
 
