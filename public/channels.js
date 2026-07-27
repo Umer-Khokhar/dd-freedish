@@ -476,7 +476,7 @@ const channels = [
     "url": "http://xx96.uk:8880/{USERNAME}/{PASSWORD}/179338"
   },
   {
-    "id": "68",
+    "id": "68v1",
     "name": "IN: STAR SPORTS HINDI HD (Rs 56)",
     "logo": "https://img-cdn.curl.pk/channels_icon_api/87425eefc162d5887894dc8688837d4a.png",
     "category": "IN - INDIAN SPORTS - LIVE",
