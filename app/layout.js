@@ -14,15 +14,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "ultra DISHTV - Live Television",
+  title: "Ultra DISHTV - Premium OTT Streaming",
   description:
-    "Watch your favorite ultra DISHTV channels live in high quality.",
+    "Stream live kids channels, Hindi anime & animated series, and animated movies in one cinematic OTT experience.",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body className="bg-slate-50 dark:bg-[#0a0a0f] text-slate-900 dark:text-slate-100 antialiased font-sans">
+      <body className="bg-[var(--bg)] text-[var(--text)] antialiased font-sans">
         <ThemeProvider>
           <Header />
           <main>{children}</main>

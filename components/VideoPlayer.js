@@ -2,11 +2,13 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import mpegts from 'mpegts.js';
 
-export default function CustomVideoPlayer({ url, channelName }) {
+export default function CustomVideoPlayer({ url, channelName, type = 'channel' }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
   const containerRef = useRef(null);
   const controlsTimerRef = useRef(null);
+  const progressRef = useRef(null);
+  const seekDragging = useRef(false);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -21,10 +23,15 @@ export default function CustomVideoPlayer({ url, channelName }) {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const [retryKey, setRetryKey] = useState(0);
   const [showForceReload, setShowForceReload] = useState(false);
+  const [hoverTime, setHoverTime] = useState(null);
   const loadingTimeoutRef = useRef(null);
   const forceReloadTimerRef = useRef(null);
+
+  const isVod = type === 'movie' || type === 'series';
+  const isLive = !isVod;
 
   const aspectRatios = [
     { label: 'Default', value: 'auto' },
@@ -54,6 +61,8 @@ export default function CustomVideoPlayer({ url, channelName }) {
     setError(null);
     setIsLoading(true);
     setShowForceReload(false);
+    setDuration(0);
+    setCurrentTime(0);
 
     // Clear any existing timers
     if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
@@ -76,10 +85,12 @@ export default function CustomVideoPlayer({ url, channelName }) {
 
     const isHD = channelName ? (channelName.toLowerCase().includes('hd') || channelName.toLowerCase().includes('4k')) : false;
 
-    // "Auto" logic based on user's internet speed (downlink in Mbps)
+    // "Auto" logic — for VOD, pick medium quality; for live, pick based on bandwidth
     let requestedQuality = quality;
     if (quality === 'Auto') {
-      if (typeof navigator !== 'undefined' && navigator.connection && navigator.connection.downlink) {
+      if (isVod) {
+        requestedQuality = 'medium'; // medium = balanced 576p-like
+      } else if (typeof navigator !== 'undefined' && navigator.connection && navigator.connection.downlink) {
         const mbps = navigator.connection.downlink;
         if (mbps >= 6 && isHD) requestedQuality = '1080p';
         else if (mbps >= 3.5 && isHD) requestedQuality = '720p';
@@ -88,7 +99,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
         else if (mbps >= 1.0) requestedQuality = '360p';
         else requestedQuality = '240p';
       } else {
-        requestedQuality = isHD ? '1080p' : '576p'; 
+        requestedQuality = isHD ? '1080p' : '576p';
       }
     }
     setActiveResolution(requestedQuality);
@@ -98,10 +109,10 @@ export default function CustomVideoPlayer({ url, channelName }) {
     if (mpegts.getFeatureList().mseLivePlayback) {
       const player = mpegts.createPlayer({
         type: 'mpegts',
-        isLive: true,
+        isLive: isLive,
         url: proxyUrl,
-        enableStashBuffer: false,
-        stashInitialSize: 128,
+        enableStashBuffer: isVod,       // buffer more for VOD to support seeking
+        stashInitialSize: isVod ? 384 : 128,
       });
 
       player.attachMediaElement(videoRef.current);
@@ -116,7 +127,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
 
       player.on(mpegts.Events.ERROR, (errorType, errorDetail, errorInfo) => {
         console.error('mpegts error:', errorType, errorDetail, errorInfo);
-        
+
         // If it's a network error, it might be our pre-validation error
         if (errorType === mpegts.ErrorTypes.NETWORK_ERROR) {
           setError(`Stream Unavailable: The server could not connect to this channel.`);
@@ -150,16 +161,16 @@ export default function CustomVideoPlayer({ url, channelName }) {
       setError('MPEG-TS playback is not supported in this browser.');
       setIsLoading(false);
     }
-  }, [url, quality, channelName, retryKey]);
+  }, [url, quality, channelName, retryKey, isVod, isLive]);
 
   // Video event listeners
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const onPlay = () => { 
-      setIsPlaying(true); 
-      setIsLoading(false); 
+    const onPlay = () => {
+      setIsPlaying(true);
+      setIsLoading(false);
       setError(null);
       setShowForceReload(false);
       if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
@@ -168,7 +179,14 @@ export default function CustomVideoPlayer({ url, channelName }) {
     const onPause = () => setIsPlaying(false);
     const onWaiting = () => setIsLoading(true);
     const onCanPlay = () => setIsLoading(false);
-    const onTimeUpdate = () => setCurrentTime(video.currentTime);
+    const onTimeUpdate = () => {
+      if (!seekDragging.current) {
+        setCurrentTime(video.currentTime);
+      }
+      if (isVod && video.duration && isFinite(video.duration)) {
+        setDuration(video.duration);
+      }
+    };
     const onVolumeChange = () => {
       setVolume(video.volume);
       setIsMuted(video.muted);
@@ -189,7 +207,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
       video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('volumechange', onVolumeChange);
     };
-  }, []);
+  }, [isVod]);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -232,9 +250,19 @@ export default function CustomVideoPlayer({ url, channelName }) {
           e.preventDefault();
           video.muted = !video.muted;
           break;
+        case 'arrowleft':
+          if (isVod && !seekDragging.current) {
+            e.preventDefault();
+            video.currentTime = Math.max(0, video.currentTime - 10);
+          }
+          break;
+        case 'arrowright':
+          if (isVod && !seekDragging.current) {
+            e.preventDefault();
+            video.currentTime = Math.min(video.duration || 0, video.currentTime + 10);
+          }
+          break;
         case 'arrowup':
-          // If controls are visible and we are focusing a slider/button, let default happen
-          // Otherwise, adjust volume
           if (document.activeElement.tagName !== 'BUTTON' && document.activeElement.tagName !== 'INPUT') {
             e.preventDefault();
             video.volume = Math.min(1, video.volume + 0.1);
@@ -251,7 +279,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [resetControlsTimer]);
+  }, [resetControlsTimer, isVod]);
 
   useEffect(() => {
     if (!isPlaying) setShowControls(true);
@@ -303,9 +331,54 @@ export default function CustomVideoPlayer({ url, channelName }) {
   };
 
   const formatTime = (sec) => {
+    if (!sec || !isFinite(sec)) return '0:00';
     const m = Math.floor(sec / 60);
     const s = Math.floor(sec % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  // ── VOD progress bar seeking ──
+  const handleProgressClick = (e) => {
+    if (!isVod || !videoRef.current || !duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    videoRef.current.currentTime = ratio * duration;
+    setCurrentTime(ratio * duration);
+  };
+
+  const handleProgressMouseMove = (e) => {
+    if (!isVod || !duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setHoverTime(ratio * duration);
+  };
+
+  const handleProgressMouseDown = (e) => {
+    if (!isVod) return;
+    seekDragging.current = true;
+    handleProgressClick(e);
+
+    const onMove = (ev) => {
+      const rect = progressRef.current.getBoundingClientRect();
+      const ratio = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+      if (videoRef.current) {
+        videoRef.current.currentTime = ratio * duration;
+        setCurrentTime(ratio * duration);
+      }
+    };
+
+    const onUp = () => {
+      seekDragging.current = false;
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onUp);
+    };
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onUp);
   };
 
   const getVideoStyle = () => {
@@ -326,9 +399,34 @@ export default function CustomVideoPlayer({ url, channelName }) {
   };
 
   const isHDChannel = channelName ? (channelName.toLowerCase().includes('hd') || channelName.toLowerCase().includes('4k')) : false;
-  const availableQualities = isHDChannel 
-    ? ['Auto', '1080p', '720p', '480p', '360p', '240p', '144p']
-    : ['Auto', '576p', '480p', '360p', '240p', '144p'];
+
+  // Qualities: live TV gets resolution tiers, VOD gets Low/Medium/High
+  const availableQualities = isLive
+    ? (isHDChannel
+        ? ['Auto', '1080p', '720p', '480p', '360p', '240p', '144p']
+        : ['Auto', '576p', '480p', '360p', '240p', '144p'])
+    : ['Auto', 'Low (360p)', 'Medium', 'High (Original)'];
+
+  // ── Quality label display ──
+  const qualityDisplayLabel = (() => {
+    if (quality === 'Auto') return isVod ? `Auto (Medium)` : `Auto (${activeResolution})`;
+    if (quality === 'low' || quality === 'Low (360p)') return 'Low (360p)';
+    if (quality === 'medium' || quality === 'Medium') return 'Medium';
+    if (quality === 'high' || quality === 'High (Original)') return 'High (Original)';
+    return quality;
+  })();
+
+  // Handle quality selection — map VOD labels to API param values
+  const handleQualitySelect = (q) => {
+    if (q === 'Low (360p)') setQuality('low');
+    else if (q === 'Medium') setQuality('medium');
+    else if (q === 'High (Original)') setQuality('high');
+    else setQuality(q);
+    setShowQualityMenu(false);
+  };
+
+  // Progress bar fill fraction
+  const progressFraction = isVod && duration > 0 ? (currentTime / duration) * 100 : 100;
 
   return (
     <div
@@ -360,7 +458,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
         overflow: 'hidden',
         boxShadow: isFullscreen ? 'none' : '0 20px 60px rgba(0,0,0,0.3)',
         cursor: showControls ? 'default' : 'none',
-        outline: 'none', // We use focus-visible for TV
+        outline: 'none',
       }}
       className={`${isFullscreen ? 'rounded-none' : 'rounded-[16px] sm:rounded-[20px]'} ${!isFullscreen ? 'aspect-[4/3] sm:aspect-video' : ''} player-focus-target`}
     >
@@ -391,7 +489,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
             borderRadius: '50%',
             animation: 'spin 0.8s linear infinite',
           }} />
-          
+
           {showForceReload && (
             <button
               onClick={(e) => { e.stopPropagation(); handleReload(); }}
@@ -460,6 +558,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
         </div>
       )}
 
+      {/* Top bar: Live badge (live only) + title */}
       <div
         style={{
           position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20,
@@ -472,18 +571,30 @@ export default function CustomVideoPlayer({ url, channelName }) {
         className="player-top-gradient"
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            background: 'rgba(239, 68, 68, 0.9)', padding: '3px 10px', borderRadius: '6px',
-            fontSize: '11px', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em',
-          }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fff' }} className="live-pulse" />
-            Live
-          </span>
+          {isLive && (
+            <span style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: 'rgba(239, 68, 68, 0.9)', padding: '3px 10px', borderRadius: '6px',
+              fontSize: '11px', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em',
+            }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fff' }} className="live-pulse" />
+              Live
+            </span>
+          )}
+          {isVod && (
+            <span style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              background: 'rgba(249,115,22,0.9)', padding: '3px 10px', borderRadius: '6px',
+              fontSize: '11px', fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.05em',
+            }}>
+              {type === 'movie' ? 'Movie' : 'Series'}
+            </span>
+          )}
           <span style={{ color: '#fff', fontSize: '14px', fontWeight: 600 }}>{channelName || 'DD FreeDish'}</span>
         </div>
       </div>
 
+      {/* Bottom controls */}
       <div
         style={{
           position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20,
@@ -496,9 +607,48 @@ export default function CustomVideoPlayer({ url, channelName }) {
         className="player-controls-gradient"
         onClick={e => e.stopPropagation()}
       >
-        <div className="progress-bar-container" style={{ marginBottom: '12px' }}>
-          <div className="progress-bar-track">
-            <div className="progress-bar-fill" style={{ width: '100%' }} />
+        {/* ── Progress bar ── */}
+        <div
+          ref={progressRef}
+          className="progress-bar-container"
+          style={{ marginBottom: '12px', cursor: isVod ? 'pointer' : 'default', position: 'relative' }}
+          onClick={handleProgressClick}
+          onMouseMove={handleProgressMouseMove}
+          onMouseLeave={() => setHoverTime(null)}
+          onMouseDown={handleProgressMouseDown}
+        >
+          {/* Hover tooltip */}
+          {isVod && hoverTime !== null && (
+            <div style={{
+              position: 'absolute', bottom: '100%', left: `${(hoverTime / duration) * 100}%`,
+              transform: 'translateX(-50%)',
+              background: 'rgba(0,0,0,0.8)', color: '#fff', fontSize: '11px', fontWeight: 600,
+              padding: '2px 6px', borderRadius: '4px', marginBottom: '6px', pointerEvents: 'none',
+              whiteSpace: 'nowrap',
+            }}>
+              {formatTime(hoverTime)}
+            </div>
+          )}
+          <div className="progress-bar-track" style={{ position: 'relative' }}>
+            {isVod && duration > 0 && (
+              <div className="progress-bar-buffered" style={{
+                position: 'absolute', top: 0, left: 0, height: '100%',
+                width: '100%', background: 'rgba(255,255,255,0.1)', borderRadius: 'inherit',
+              }} />
+            )}
+            <div
+              className="progress-bar-fill"
+              style={{ width: `${progressFraction}%` }}
+            />
+            {isVod && duration > 0 && (
+              <div style={{
+                position: 'absolute', top: '50%', left: `${progressFraction}%`,
+                width: '12px', height: '12px', borderRadius: '50%',
+                background: 'var(--accent-primary, #f97316)',
+                transform: 'translate(-50%, -50%)',
+                boxShadow: '0 0 6px rgba(249,115,22,0.6)',
+              }} />
+            )}
           </div>
         </div>
 
@@ -547,7 +697,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
             />
 
             <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 500, marginLeft: '8px', fontVariantNumeric: 'tabular-nums' }}>
-              {formatTime(currentTime)}
+              {isVod ? `${formatTime(currentTime)} / ${formatTime(duration)}` : formatTime(currentTime)}
             </span>
           </div>
 
@@ -571,7 +721,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
                 </svg>
                 {activeResolution && (
                   <span className={isFullscreen ? 'inline' : 'hidden sm:inline'} style={{ fontSize: '13px', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-                    {quality === 'Auto' ? `Auto (${activeResolution})` : activeResolution}
+                    {qualityDisplayLabel}
                   </span>
                 )}
               </button>
@@ -583,29 +733,37 @@ export default function CustomVideoPlayer({ url, channelName }) {
                     position: 'absolute', bottom: '48px', right: 0,
                     background: 'rgba(15,23,42,0.95)', backdropFilter: 'blur(12px)',
                     borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
-                    padding: '6px', minWidth: '110px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                    padding: '6px', minWidth: '140px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
                   }}
                   onClick={e => e.stopPropagation()}
                 >
                   <div style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Quality
                   </div>
-                  {availableQualities.map(q => (
-                    <button
-                      key={q}
-                      onClick={() => { setQuality(q); setShowQualityMenu(false); }}
-                      style={{
-                        display: 'block', width: '100%', padding: '8px 10px', textAlign: 'left',
-                        background: quality === q ? 'var(--accent-primary)' : 'transparent',
-                        color: '#fff', fontSize: '13px', fontWeight: 500, border: 'none', borderRadius: '8px',
-                        cursor: 'pointer', transition: 'background 0.15s ease',
-                      }}
-                      onMouseEnter={e => { if (quality !== q) e.target.style.background = 'rgba(255,255,255,0.1)'; }}
-                      onMouseLeave={e => { if (quality !== q) e.target.style.background = 'transparent'; }}
-                    >
-                      {q}
-                    </button>
-                  ))}
+                  {availableQualities.map(q => {
+                    const isActive = (() => {
+                      if (q === 'Low (360p)') return quality === 'low';
+                      if (q === 'Medium') return quality === 'medium';
+                      if (q === 'High (Original)') return quality === 'high';
+                      return quality === q;
+                    })();
+                    return (
+                      <button
+                        key={q}
+                        onClick={() => handleQualitySelect(q)}
+                        style={{
+                          display: 'block', width: '100%', padding: '8px 10px', textAlign: 'left',
+                          background: isActive ? 'var(--accent-primary)' : 'transparent',
+                          color: '#fff', fontSize: '13px', fontWeight: 500, border: 'none', borderRadius: '8px',
+                          cursor: 'pointer', transition: 'background 0.15s ease',
+                        }}
+                        onMouseEnter={e => { if (!isActive) e.target.style.background = 'rgba(255,255,255,0.1)'; }}
+                        onMouseLeave={e => { if (!isActive) e.target.style.background = 'transparent'; }}
+                      >
+                        {q}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -670,6 +828,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
         </div>
       </div>
 
+      {/* Center play button (when paused) */}
       {!isPlaying && !isLoading && !error && url && (
         <div
           style={{
@@ -678,7 +837,7 @@ export default function CustomVideoPlayer({ url, channelName }) {
             pointerEvents: 'none',
           }}
         >
-          <div 
+          <div
             onClick={(e) => { e.stopPropagation(); togglePlay(); }}
             style={{
               width: '72px', height: '72px', borderRadius: '50%',
