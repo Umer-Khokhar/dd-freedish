@@ -2,6 +2,37 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import mpegts from 'mpegts.js';
 
+// ISO 639-2 language codes → display names for audio track selection
+const LANG_NAMES = {
+  hin: 'Hindi', eng: 'English', jpn: 'Japanese', tam: 'Tamil', tel: 'Telugu',
+  kan: 'Kannada', mal: 'Malayalam', mar: 'Marathi', ben: 'Bengali', guj: 'Gujarati',
+  pan: 'Punjabi', urd: 'Urdu', spa: 'Spanish', fra: 'French', fre: 'French',
+  ger: 'German', deu: 'German', kor: 'Korean', chi: 'Chinese', zho: 'Chinese',
+  ara: 'Arabic', por: 'Portuguese', rus: 'Russian', ind: 'Indonesian', tha: 'Thai',
+  vie: 'Vietnamese', tur: 'Turkish', ita: 'Italian', dut: 'Dutch', nld: 'Dutch',
+  pol: 'Polish', sve: 'Swedish', dan: 'Danish', nor: 'Norwegian', fin: 'Finnish',
+  ell: 'Greek', heb: 'Hebrew', ces: 'Czech', hun: 'Hungarian', rum: 'Romanian',
+  ukr: 'Ukrainian', cat: 'Catalan', fil: 'Filipino', tgl: 'Tagalog',
+};
+
+// Best-effort display label for an audio track: prefer the ISO code mapping,
+// then a language name inside the track title (e.g. "vegamovies.in (English)").
+const getAudioLabel = (track) => {
+  const lang = (track.language || '').toLowerCase();
+  if (LANG_NAMES[lang]) return LANG_NAMES[lang];
+
+  const title = (track.title || '').toLowerCase();
+  const paren = title.match(/\(([^)]+)\)/);
+  if (paren) {
+    const word = paren[1].trim();
+    const found = Object.values(LANG_NAMES).find(n => n.toLowerCase() === word);
+    if (found) return found;
+  }
+  if (lang) return lang.toUpperCase();
+  if (track.title) return track.title;
+  return `Audio ${track.index + 1}`;
+};
+
 export default function CustomVideoPlayer({ url, channelName, type = 'channel' }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
@@ -9,6 +40,9 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
   const controlsTimerRef = useRef(null);
   const progressRef = useRef(null);
   const seekDragging = useRef(false);
+  const seekTimeRef = useRef(0);
+  const pendingSeekRef = useRef(0);
+  const streamOffsetRef = useRef(0);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -27,6 +61,11 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
   const [retryKey, setRetryKey] = useState(0);
   const [showForceReload, setShowForceReload] = useState(false);
   const [hoverTime, setHoverTime] = useState(null);
+  const [seekTrigger, setSeekTrigger] = useState(0);
+  const [mediaDuration, setMediaDuration] = useState(0);
+  const [seekPreview, setSeekPreview] = useState(null);
+  const [audioState, setAudioState] = useState({ url: null, audioTracks: [], audioIndex: null, showAudioMenu: false });
+  const { audioTracks, audioIndex, showAudioMenu } = audioState;
   const loadingTimeoutRef = useRef(null);
   const forceReloadTimerRef = useRef(null);
 
@@ -55,14 +94,59 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
     setShowForceReload(false);
   }, []);
 
+  // When the media URL changes (new episode / movie), reset audio selection so
+  // a stale track choice from a previous file never gets passed to the proxy.
+  // This is React's documented render-time state adjustment pattern.
+  if (audioState.url !== url) {
+    setAudioState({ url, audioTracks: [], audioIndex: null, showAudioMenu: false });
+  }
+
+  // Probe media duration + audio tracks for VOD content
+  useEffect(() => {
+    if (!isVod || !url) return;
+    let cancelled = false;
+    const probeUrl = `/api/stream?url=${encodeURIComponent(url)}&probe=1`;
+    fetch(probeUrl)
+      .then(r => r.json())
+      .then(data => {
+        if (cancelled || audioState.url !== url) return;
+        if (data.duration > 0) {
+          setMediaDuration(data.duration);
+        }
+        if (Array.isArray(data.audioTracks) && data.audioTracks.length > 1) {
+          // Keep audioIndex null (= auto / ffmpeg default track) until the user
+          // explicitly selects a language. This avoids tearing down and re-buffering
+          // the just-started stream merely to pass `audio=N` for the default track.
+          // The label/highlight already fall back to the isDefault track.
+          setAudioState(s => ({ ...s, url, audioTracks: data.audioTracks }));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [url, isVod, audioState.url]);
+
   // Initialize mpegts player
   useEffect(() => {
     if (!url || !videoRef.current) return;
     setError(null);
     setIsLoading(true);
     setShowForceReload(false);
-    setDuration(0);
-    setCurrentTime(0);
+
+    // Determine the start position:
+    // - If we're seeking, use the seek target
+    // - Otherwise (initial load / quality change / retry), preserve currentTime
+    //   so a quality switch resumes where you were instead of jumping to 0.
+    const seekPos = seekTimeRef.current;
+    const isSeek = seekPos > 0;
+    const startTime = isSeek ? seekPos : Math.floor(currentTime);
+    if (!isSeek && currentTime > 0) {
+      setCurrentTime(currentTime);
+    } else if (!isSeek) {
+      setDuration(0);
+      setCurrentTime(0);
+    } else {
+      setCurrentTime(seekPos);
+    }
 
     // Clear any existing timers
     if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
@@ -104,7 +188,11 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
     }
     setActiveResolution(requestedQuality);
 
-    const proxyUrl = `/api/stream?url=${encodeURIComponent(url)}&quality=${requestedQuality}&isHD=${isHD}&retry=${retryKey}`;
+    seekTimeRef.current = 0;
+    streamOffsetRef.current = startTime;
+
+    const audioParam = audioIndex !== null ? `&audio=${audioIndex}` : '';
+    const proxyUrl = `/api/stream?url=${encodeURIComponent(url)}&quality=${requestedQuality}&isHD=${isHD}&startTime=${startTime}${audioParam}&retry=${retryKey}`;
 
     if (mpegts.getFeatureList().mseLivePlayback) {
       const player = mpegts.createPlayer({
@@ -152,6 +240,20 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
       });
 
       return () => {
+        // Capture the last video frame BEFORE destroying the player so the screen
+        // doesn't go black while the new stream is being initialized.
+        try {
+          const video = videoRef.current;
+          if (video && video.videoWidth > 0 && video.readyState >= 2) {
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            setSeekPreview(canvas.toDataURL('image/jpeg', 0.7));
+          }
+        } catch (e) { /* canvas may taint for cross-origin; ignore */ }
+
         if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
         if (forceReloadTimerRef.current) clearTimeout(forceReloadTimerRef.current);
         player.destroy();
@@ -161,7 +263,7 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
       setError('MPEG-TS playback is not supported in this browser.');
       setIsLoading(false);
     }
-  }, [url, quality, channelName, retryKey, isVod, isLive]);
+  }, [url, quality, channelName, retryKey, seekTrigger, audioIndex, isVod, isLive]);
 
   // Video event listeners
   useEffect(() => {
@@ -173,19 +275,28 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
       setIsLoading(false);
       setError(null);
       setShowForceReload(false);
+      setSeekPreview(null);
       if (loadingTimeoutRef.current) clearTimeout(loadingTimeoutRef.current);
       if (forceReloadTimerRef.current) clearTimeout(forceReloadTimerRef.current);
     };
     const onPause = () => setIsPlaying(false);
     const onWaiting = () => setIsLoading(true);
-    const onCanPlay = () => setIsLoading(false);
+    const onCanPlay = () => {
+      setIsLoading(false);
+      setSeekPreview(null);
+    };
+    const onLoadedData = () => setSeekPreview(null);
+    const onPlaying = () => setSeekPreview(null);
     const onTimeUpdate = () => {
       if (!seekDragging.current) {
-        setCurrentTime(video.currentTime);
+        setCurrentTime(streamOffsetRef.current + video.currentTime);
       }
       if (isVod && video.duration && isFinite(video.duration)) {
         setDuration(video.duration);
       }
+      // Safety net: any time the new stream updates the playhead,
+      // the old captured frame should already be gone.
+      setSeekPreview(prev => prev === null ? prev : null);
     };
     const onVolumeChange = () => {
       setVolume(video.volume);
@@ -196,6 +307,8 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
     video.addEventListener('pause', onPause);
     video.addEventListener('waiting', onWaiting);
     video.addEventListener('canplay', onCanPlay);
+    video.addEventListener('loadeddata', onLoadedData);
+    video.addEventListener('playing', onPlaying);
     video.addEventListener('timeupdate', onTimeUpdate);
     video.addEventListener('volumechange', onVolumeChange);
 
@@ -204,6 +317,8 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
       video.removeEventListener('pause', onPause);
       video.removeEventListener('waiting', onWaiting);
       video.removeEventListener('canplay', onCanPlay);
+      video.removeEventListener('loadeddata', onLoadedData);
+      video.removeEventListener('playing', onPlaying);
       video.removeEventListener('timeupdate', onTimeUpdate);
       video.removeEventListener('volumechange', onVolumeChange);
     };
@@ -338,41 +453,51 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
   };
 
   // ── VOD progress bar seeking ──
-  const handleProgressClick = (e) => {
-    if (!isVod || !videoRef.current || !duration) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    videoRef.current.currentTime = ratio * duration;
-    setCurrentTime(ratio * duration);
-  };
-
   const handleProgressMouseMove = (e) => {
-    if (!isVod || !duration) return;
+    if (!isVod || !effectiveDuration) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    setHoverTime(ratio * duration);
+    setHoverTime(ratio * effectiveDuration);
   };
 
   const handleProgressMouseDown = (e) => {
-    if (!isVod) return;
+    if (!isVod || !effectiveDuration) return;
     seekDragging.current = true;
-    handleProgressClick(e);
+
+    let hasMoved = false;
 
     const onMove = (ev) => {
+      hasMoved = true;
       const rect = progressRef.current.getBoundingClientRect();
       const ratio = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
-      if (videoRef.current) {
-        videoRef.current.currentTime = ratio * duration;
-        setCurrentTime(ratio * duration);
-      }
+      const targetTime = ratio * effectiveDuration;
+      pendingSeekRef.current = targetTime;
+      setCurrentTime(targetTime);
     };
 
-    const onUp = () => {
+    const onUp = (ev) => {
       seekDragging.current = false;
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('touchend', onUp);
+
+      if (hasMoved) {
+        const finalTime = pendingSeekRef.current;
+        pendingSeekRef.current = 0;
+        seekTimeRef.current = finalTime;
+        setSeekTrigger(prev => prev + 1);
+      } else {
+        const clientX = ev.clientX !== undefined ? ev.clientX : ev.changedTouches?.[0]?.clientX;
+        if (clientX !== undefined) {
+          const rect = progressRef.current.getBoundingClientRect();
+          const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+          const targetTime = ratio * effectiveDuration;
+          seekTimeRef.current = targetTime;
+          setSeekTrigger(prev => prev + 1);
+          setCurrentTime(targetTime);
+        }
+      }
     };
 
     document.addEventListener('mousemove', onMove);
@@ -407,6 +532,16 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
         : ['Auto', '576p', '480p', '360p', '240p', '144p'])
     : ['Auto', 'Low (360p)', 'Medium', 'High (Original)'];
 
+  // Currently active audio track: explicit selection, else the ffmpeg default
+  const activeAudio = audioTracks.find(t =>
+    audioIndex !== null ? t.index === audioIndex : t.isDefault
+  ) || audioTracks[0];
+  const activeAudioLabel = activeAudio ? getAudioLabel(activeAudio) : '';
+
+  const handleAudioSelect = (idx) => {
+    setAudioState(s => ({ ...s, audioIndex: idx, showAudioMenu: false }));
+  };
+
   // ── Quality label display ──
   const qualityDisplayLabel = (() => {
     if (quality === 'Auto') return isVod ? `Auto (Medium)` : `Auto (${activeResolution})`;
@@ -426,7 +561,8 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
   };
 
   // Progress bar fill fraction
-  const progressFraction = isVod && duration > 0 ? (currentTime / duration) * 100 : 100;
+  const effectiveDuration = isVod && mediaDuration > 0 ? mediaDuration : duration;
+  const progressFraction = isVod && effectiveDuration > 0 ? (currentTime / effectiveDuration) * 100 : 100;
 
   return (
     <div
@@ -469,6 +605,21 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
         playsInline
         style={getVideoStyle()}
       />
+
+      {/* Last-frame preview so screen doesn't go black during seek/quality reload */}
+      {seekPreview && (
+        <img
+          src={seekPreview}
+          alt=""
+          style={{
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '100%', height: '100%',
+            objectFit: 'contain',
+            zIndex: 2, pointerEvents: 'none',
+          }}
+        />
+      )}
 
       <div data-clickarea="true" style={{
         position: 'absolute', inset: 0, zIndex: 1,
@@ -594,65 +745,68 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
         </div>
       </div>
 
-      {/* Bottom controls */}
-      <div
-        style={{
-          position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20,
-          padding: '0 20px 16px',
-          opacity: showControls ? 1 : 0,
-          transform: showControls ? 'translateY(0)' : 'translateY(10px)',
-          transition: 'all 0.3s ease',
-          pointerEvents: showControls ? 'auto' : 'none',
-        }}
-        className="player-controls-gradient"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* ── Progress bar ── */}
+      {/* ── Bottom area: unified gradient wrapping seek bar + controls (YouTube style) ── */}
         <div
-          ref={progressRef}
-          className="progress-bar-container"
-          style={{ marginBottom: '12px', cursor: isVod ? 'pointer' : 'default', position: 'relative' }}
-          onClick={handleProgressClick}
-          onMouseMove={handleProgressMouseMove}
-          onMouseLeave={() => setHoverTime(null)}
-          onMouseDown={handleProgressMouseDown}
+          className="player-controls-gradient"
+          style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20,
+            paddingTop: '14px',
+            opacity: showControls ? 1 : 0,
+            transform: showControls ? 'translateY(0)' : 'translateY(10px)',
+            transition: 'all 0.3s ease',
+            pointerEvents: showControls ? 'auto' : 'none',
+          }}
+          onClick={e => e.stopPropagation()}
         >
-          {/* Hover tooltip */}
-          {isVod && hoverTime !== null && (
-            <div style={{
-              position: 'absolute', bottom: '100%', left: `${(hoverTime / duration) * 100}%`,
-              transform: 'translateX(-50%)',
-              background: 'rgba(0,0,0,0.8)', color: '#fff', fontSize: '11px', fontWeight: 600,
-              padding: '2px 6px', borderRadius: '4px', marginBottom: '6px', pointerEvents: 'none',
-              whiteSpace: 'nowrap',
-            }}>
-              {formatTime(hoverTime)}
-            </div>
-          )}
-          <div className="progress-bar-track" style={{ position: 'relative' }}>
-            {isVod && duration > 0 && (
-              <div className="progress-bar-buffered" style={{
-                position: 'absolute', top: 0, left: 0, height: '100%',
-                width: '100%', background: 'rgba(255,255,255,0.1)', borderRadius: 'inherit',
-              }} />
-            )}
-            <div
-              className="progress-bar-fill"
-              style={{ width: `${progressFraction}%` }}
-            />
-            {isVod && duration > 0 && (
+          {/* Seek bar at top of gradient area (always visible while container is shown) */}
+          <div
+            ref={progressRef}
+            className="progress-bar-container"
+            style={{
+              padding: '0 20px 8px',
+              cursor: isVod ? 'pointer' : 'default',
+            }}
+            onMouseMove={(e) => { handleProgressMouseMove(e); resetControlsTimer(); }}
+            onMouseLeave={() => setHoverTime(null)}
+            onMouseDown={handleProgressMouseDown}
+          >
+            {/* Hover tooltip */}
+            {isVod && hoverTime !== null && (
               <div style={{
-                position: 'absolute', top: '50%', left: `${progressFraction}%`,
-                width: '12px', height: '12px', borderRadius: '50%',
-                background: 'var(--accent-primary, #f97316)',
-                transform: 'translate(-50%, -50%)',
-                boxShadow: '0 0 6px rgba(249,115,22,0.6)',
-              }} />
+                position: 'absolute', bottom: '100%', left: `${(hoverTime / effectiveDuration) * 100}%`,
+                transform: 'translateX(-50%)',
+                background: 'rgba(0,0,0,0.8)', color: '#fff', fontSize: '11px', fontWeight: 600,
+                padding: '2px 6px', borderRadius: '4px', marginBottom: '6px', pointerEvents: 'none',
+                whiteSpace: 'nowrap',
+              }}>
+                {formatTime(hoverTime)}
+              </div>
             )}
+            <div className="progress-bar-track">
+              {isVod && effectiveDuration > 0 && (
+                <div className="progress-bar-buffered" style={{
+                  position: 'absolute', top: 0, left: 0, height: '100%',
+                  width: '100%', background: 'rgba(255,255,255,0.15)', borderRadius: 'inherit',
+                }} />
+              )}
+              <div
+                className="progress-bar-fill"
+                style={{ width: `${progressFraction}%` }}
+              />
+              {isVod && effectiveDuration > 0 && (
+                <div
+                  className="progress-bar-thumb"
+                  style={{ left: `${progressFraction}%` }}
+                />
+              )}
+            </div>
           </div>
-        </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Controls below the seek bar */}
+          <div style={{
+            padding: '6px 20px 16px',
+          }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <PlayerButton onClick={togglePlay} label={isPlaying ? 'Pause' : 'Play'}>
               {isPlaying ? (
@@ -697,14 +851,77 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
             />
 
             <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', fontWeight: 500, marginLeft: '8px', fontVariantNumeric: 'tabular-nums' }}>
-              {isVod ? `${formatTime(currentTime)} / ${formatTime(duration)}` : formatTime(currentTime)}
+              {isVod ? `${formatTime(currentTime)} / ${formatTime(effectiveDuration)}` : formatTime(currentTime)}
             </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {/* Audio / Language selector (VOD with multiple audio tracks) */}
+            {audioTracks.length > 1 && (
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => { setAudioState(s => ({ ...s, showAudioMenu: !s.showAudioMenu })); setShowQualityMenu(false); setShowAspectMenu(false); }}
+                  title="Audio Language"
+                  style={{
+                    height: '40px', padding: '0 10px', borderRadius: '10px',
+                    border: 'none', background: 'transparent', color: '#fff',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                    transition: 'background 0.15s ease',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'var(--player-control-hover)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    <path d="M8 9h8" /><path d="M8 13h5" />
+                  </svg>
+                  <span className={isFullscreen ? 'inline' : 'hidden sm:inline'} style={{ fontSize: '13px', fontWeight: 600 }}>
+                    {activeAudioLabel}
+                  </span>
+                </button>
+
+                {showAudioMenu && (
+                  <div
+                    className="animate-slide-down"
+                    style={{
+                      position: 'absolute', bottom: '48px', right: 0,
+                      background: 'rgba(15,23,42,0.95)', backdropFilter: 'blur(12px)',
+                      borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)',
+                      padding: '6px', minWidth: '150px', boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                      maxHeight: '280px', overflowY: 'auto',
+                    }}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div style={{ padding: '6px 10px', fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Audio Language
+                    </div>
+                    {audioTracks.map(t => {
+                      const isActive = t.index === (audioIndex !== null ? audioIndex : (activeAudio?.index));
+                      return (
+                        <button
+                          key={t.index}
+                          onClick={() => handleAudioSelect(t.index)}
+                          style={{
+                            display: 'block', width: '100%', padding: '8px 10px', textAlign: 'left',
+                            background: isActive ? 'var(--accent-primary)' : 'transparent',
+                            color: '#fff', fontSize: '13px', fontWeight: 500, border: 'none', borderRadius: '8px',
+                            cursor: 'pointer', transition: 'background 0.15s ease',
+                          }}
+                          onMouseEnter={e => { if (!isActive) e.target.style.background = 'rgba(255,255,255,0.1)'; }}
+                          onMouseLeave={e => { if (!isActive) e.target.style.background = 'transparent'; }}
+                        >
+                          {getAudioLabel(t)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div style={{ position: 'relative' }}>
               <button
-                onClick={() => { setShowQualityMenu(!showQualityMenu); setShowAspectMenu(false); }}
+                onClick={() => { setShowQualityMenu(!showQualityMenu); setShowAspectMenu(false); setAudioState(s => ({ ...s, showAudioMenu: false })); }}
                 title="Quality Settings"
                 style={{
                   height: '40px', padding: '0 10px', borderRadius: '10px',
@@ -770,7 +987,7 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
 
             <div style={{ position: 'relative' }}>
               <PlayerButton
-                onClick={() => { setShowAspectMenu(!showAspectMenu); setShowQualityMenu(false); }}
+                onClick={() => { setShowAspectMenu(!showAspectMenu); setShowQualityMenu(false); setAudioState(s => ({ ...s, showAudioMenu: false })); }}
                 label="Aspect Ratio"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -823,8 +1040,9 @@ export default function CustomVideoPlayer({ url, channelName, type = 'channel' }
                   <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
                 </svg>
               )}
-            </PlayerButton>
-          </div>
+</PlayerButton>
+           </div>
+         </div>
         </div>
       </div>
 

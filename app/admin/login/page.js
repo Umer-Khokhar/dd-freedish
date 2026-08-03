@@ -49,7 +49,7 @@ export default function AdminLogin() {
       <div className={`relative z-10 w-full max-w-md p-8 sm:p-10 rounded-[2rem] shadow-2xl ${isDark ? 'bg-[#12121a]/80 backdrop-blur-xl border border-white/5' : 'bg-white border border-slate-200'}`}>
         <div className="flex justify-center mb-8">
           <div className="w-16 h-16 rounded-2xl overflow-hidden relative bg-white dark:bg-[#0a0a0f] border border-slate-200 dark:border-white/10 shadow-[0_0_20px_rgba(249,115,22,0.3)]">
-            <Image src="/logo.png" alt="Logo" fill className="object-contain p-2" priority />
+            <Image src="/logo.png" alt="Logo" fill sizes="64px" className="object-contain p-2" priority />
           </div>
         </div>
 

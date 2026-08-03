@@ -33,10 +33,6 @@
 }
 
 /* ===== Base ===== */
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -149,14 +145,14 @@ html {
 
 /* ===== Player Styles ===== */
 .player-controls-gradient {
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 50%, transparent 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.8) 40%, rgba(0, 0, 0, 0.55) 75%, rgba(0, 0, 0, 0.3) 100%);
 }
 .player-top-gradient {
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, transparent 100%);
 }
 .progress-bar-container {
   position: relative;
-  height: 4px;
+  height: 5px;
   cursor: pointer;
   transition: height 0.15s ease;
 }
@@ -166,7 +162,7 @@ html {
 .progress-bar-track {
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.35);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -179,16 +175,17 @@ html {
 .progress-bar-thumb {
   position: absolute;
   top: 50%;
-  transform: translate(-50%, -50%) scale(0);
+  transform: translate(-50%, -50%) scale(1);
   width: 14px;
   height: 14px;
-  background: #d946ef;
+  background: var(--accent-primary, #f97316);
   border-radius: 50%;
-  box-shadow: 0 0 8px rgba(217, 70, 239, 0.5);
-  transition: transform 0.15s ease;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.5);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  opacity: 1;
 }
 .progress-bar-container:hover .progress-bar-thumb {
-  transform: translate(-50%, -50%) scale(1);
+  transform: translate(-50%, -50%) scale(1.3);
 }
 
 .volume-slider {
@@ -247,4 +244,13 @@ button:focus-visible {
 .ott-card {
   animation: fadeInUp 0.5s ease-out forwards;
   opacity: 0;
+}
+
+/* ===== Scrollbar hide utility ===== */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

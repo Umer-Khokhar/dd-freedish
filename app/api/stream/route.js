@@ -28,6 +28,10 @@ export async function GET(req) {
   let targetUrl = searchParams.get('url');
   const qualityParam = (searchParams.get('quality') || 'medium').toLowerCase();
   const isHD = searchParams.get('isHD') === 'true';
+  const startTime = parseFloat(searchParams.get('startTime') || '0');
+  const probeOnly = searchParams.get('probe') === '1';
+  const audioIndex = parseInt(searchParams.get('audio'), 10);
+  const hasAudioSelect = Number.isInteger(audioIndex) && audioIndex >= 0;
 
   if (!targetUrl || !String(targetUrl).startsWith("http")) {
     return new NextResponse('Invalid stream URL', { status: 400 });
@@ -42,7 +46,7 @@ export async function GET(req) {
       if (fs.existsSync(settingsPath)) {
         const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
         const urlObj = new URL(targetUrl);
-        const providerHost = urlObj.host; // e.g., xx96.uk:8880
+        const providerHost = urlObj.host;
 
         if (settings.providers && settings.providers[providerHost]) {
           const { username, password } = settings.providers[providerHost];
@@ -54,11 +58,21 @@ export async function GET(req) {
     }
   }
 
+  if (probeOnly) {
+    try {
+      const probeResult = await probeMedia(targetUrl);
+      return NextResponse.json(probeResult);
+    } catch (err) {
+      console.warn('[probe] ffprobe failed:', err.message);
+      return NextResponse.json({ duration: 0, audioTracks: [] });
+    }
+  }
+
   // Pre-validate the stream URL to catch 404/403/offline errors early
   try {
-    const probe = await fetch(targetUrl, { 
+      const probe = await fetch(targetUrl, { 
       method: 'HEAD', 
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(10000),
       headers: { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:151.0) Gecko/20100101 Firefox/151.0' }
     });
     
@@ -80,9 +94,10 @@ export async function GET(req) {
     let bufSize = '8000k';
     let scaleWidth = '1920';
     let crf = '';         // only used when H264_HAS_CRF is true
+    let copyVideo = false; // stream-copy video without re-encoding (true original)
 
     if (qualityParam === '1080p') { crf = '23'; maxRate = ''; bufSize = '16000k'; scaleWidth = '1920'; bitrate = '5000k'; }
-    else if (qualityParam === 'high') { crf = '18'; maxRate = ''; bufSize = '30000k'; scaleWidth = ''; bitrate = '8000k'; }
+    else if (qualityParam === 'high') { copyVideo = true; bufSize = '30000k'; }
     else if (qualityParam === 'medium') { crf = '23'; maxRate = ''; bufSize = '8000k'; scaleWidth = '1024'; bitrate = '2500k'; }
     else if (qualityParam === 'low') { crf = '28'; maxRate = '800k'; bufSize = '1600k'; scaleWidth = '640'; bitrate = '600k'; }
     else if (qualityParam === '720p') { crf = '25'; maxRate = '3000k'; bufSize = '6000k'; scaleWidth = '1280'; bitrate = '2500k'; }
@@ -95,7 +110,7 @@ export async function GET(req) {
     else if (isHD) { crf = '23'; maxRate = ''; bufSize = '16000k'; scaleWidth = '1920'; bitrate = '5000k'; }
     else { crf = '23'; maxRate = ''; bufSize = '8000k'; scaleWidth = '1024'; bitrate = '2500k'; }
 
-    // Always use transcoding for Chrome compatibility
+    // Always use transcoding for Chrome compatibility, unless copyVideo (high/original)
     // Added advanced flags to prevent mpegts.js SourceBuffer crashes (PTS/DTS errors)
     const ffmpegArgs = [
       '-hide_banner',
@@ -104,58 +119,81 @@ export async function GET(req) {
       '-fflags', '+genpts',         // Generate valid presentation timestamps
       '-reconnect', '1',            // Reconnect if stream drops
       '-reconnect_streamed', '1',
-      '-reconnect_delay_max', '2',
+      '-reconnect_delay_max', '5',
+      '-reconnect_on_network_error', '1',
+      '-reconnect_on_http_error', '4xx,5xx',
+      '-rw_timeout', '15000000',    // 15s read/write timeout in microseconds
+      ...(startTime > 0 ? ['-ss', String(startTime)] : []),
       '-i', targetUrl,
-      // Video transcoding:
-      '-c:v', H264_ENCODER
+      // Audio track selection: when a specific audio stream is requested we must
+      // explicitly map video + that audio stream (adding any -map disables ffmpeg's
+      // automatic stream selection for ALL stream types).
+      ...(hasAudioSelect
+        ? ['-map', '0:v:0', '-map', `0:a:${audioIndex}`]
+        : []),
     ];
 
-    if (H264_HAS_CRF) {
-      // libx264 path: CRF-based quality with preset/tune
+    if (copyVideo) {
+      // "High (Original)" — stream-copy video as-is for true original quality.
+      // Only audio is re-encoded to AAC for browser compatibility.
       ffmpegArgs.push(
-        '-preset', 'veryfast',
-        '-tune', 'zerolatency',
-        '-crf', crf
+        '-c:v', 'copy',
+        '-c:a', 'aac',
+        '-b:a', '128k',
+        '-ac', '2',
+        '-ar', '44100',
+        '-af', 'aresample=async=1',
+        '-f', 'mpegts',
+        '-muxdelay', '0.1',
+        'pipe:1'
       );
-      if (maxRate) {
-        ffmpegArgs.push('-maxrate', maxRate);
-      }
     } else {
-      // libopenh264 path: bitrate-based quality (no CRF support)
+      // Transcode video for Chrome MSE compatibility
+      ffmpegArgs.push('-c:v', H264_ENCODER);
+
+      if (H264_HAS_CRF) {
+        // libx264 path: CRF-based quality with preset/tune
+        ffmpegArgs.push(
+          '-preset', 'veryfast',
+          '-tune', 'zerolatency',
+          '-crf', crf
+        );
+        if (maxRate) {
+          ffmpegArgs.push('-maxrate', maxRate);
+        }
+      } else {
+        // libopenh264 path: bitrate-based quality (no CRF support)
+        ffmpegArgs.push(
+          '-rc_mode', 'bitrate',
+          '-b:v', bitrate
+        );
+        // Use 1.5x the quality's bitrate as a maxrate ceiling
+        const maxrate = Math.round(parseInt(bitrate) * 1.5) + 'k';
+        ffmpegArgs.push('-maxrate', maxrate);
+      }
+
       ffmpegArgs.push(
-        '-rc_mode', 'bitrate',
-        '-b:v', bitrate
+        '-vf', scaleWidth ? `yadif,scale='min(${scaleWidth},iw)':-2` : 'yadif',
+        '-g', '50',                   // Force keyframe every 2 seconds (crucial for MSE/SourceBuffer)
+        '-keyint_min', '50',
+        '-sc_threshold', '0',         // Strict GOP size
+        '-r', '25',                   // Force constant frame rate to fix variable framerate crashes
+        '-pix_fmt', 'yuv420p',        // Ensure widely supported pixel format
+        // Always supply a buffer size for smoothing
+        '-bufsize', bufSize,
+        '-threads', '2',              // Limit CPU threads so it doesn't crash Railway container
+        // Audio transcoding:
+        '-c:a', 'aac',
+        '-b:a', '128k',
+        '-ac', '2',                   // Force stereo (5.1 audio can crash browser players)
+        '-ar', '44100',               // Force standard sample rate
+        '-af', 'aresample=async=1',   // Stretch/squeeze audio to maintain sync with video
+        // Muxing to MPEG-TS stdout:
+        '-f', 'mpegts',
+        '-muxdelay', '0.1',           // Prevent TS muxing buffer underflows
+        'pipe:1'
       );
-      // Use 1.5x the quality's bitrate as a maxrate ceiling
-      const maxrate = Math.round(parseInt(bitrate) * 1.5) + 'k';
-      ffmpegArgs.push('-maxrate', maxrate);
     }
-
-    ffmpegArgs.push(
-      '-vf', scaleWidth ? `yadif,scale='min(${scaleWidth},iw)':-2` : 'yadif',
-      '-g', '50',                   // Force keyframe every 2 seconds (crucial for MSE/SourceBuffer)
-      '-keyint_min', '50',
-      '-sc_threshold', '0',         // Strict GOP size
-      '-r', '25',                   // Force constant frame rate to fix variable framerate crashes
-      '-pix_fmt', 'yuv420p'         // Ensure widely supported pixel format
-    );
-
-    // Always supply a buffer size for smoothing
-    ffmpegArgs.push('-bufsize', bufSize);
-
-    ffmpegArgs.push(
-      '-threads', '2',              // Limit CPU threads so it doesn't crash Railway container
-      // Audio transcoding:
-      '-c:a', 'aac',
-      '-b:a', '128k',
-      '-ac', '2',                   // Force stereo (5.1 audio can crash browser players)
-      '-ar', '44100',               // Force standard sample rate
-      '-af', 'aresample=async=1',   // Stretch/squeeze audio to maintain sync with video
-      // Muxing to MPEG-TS stdout:
-      '-f', 'mpegts',
-      '-muxdelay', '0.1',           // Prevent TS muxing buffer underflows
-      'pipe:1'
-    );
 
     const ffmpeg = spawn('ffmpeg', ffmpegArgs);
 
@@ -165,7 +203,13 @@ export async function GET(req) {
 
     ffmpeg.stderr.on('data', (data) => {
       const msg = data.toString();
-      console.error('[FFmpeg]', msg);
+      // "Stream ends prematurely" is non-fatal when reconnect is enabled — the source
+      // server just closes the connection and ffmpeg reconnects. Demote to warn.
+      if (msg.includes('Stream ends prematurely')) {
+        console.warn('[FFmpeg]', msg.trim());
+      } else {
+        console.error('[FFmpeg]', msg);
+      }
       ffmpegStderr += msg;
     });
 
@@ -254,4 +298,75 @@ export async function GET(req) {
     console.error(err);
     return new NextResponse("Proxy error: " + err.message, { status: 500 });
   }
+}
+
+function probeMedia(url) {
+  return new Promise((resolve, reject) => {
+    const proc = spawn('ffprobe', [
+      '-v', 'error',
+      '-show_entries',
+      'format=duration:stream=index,codec_type,codec_name,width,height,r_frame_rate,channels:stream_tags=language,title:stream_disposition=default',
+      '-of', 'json',
+      '-user_agent', 'Mozilla/5.0 (X11; Linux x86_64; rv:151.0) Gecko/20100101 Firefox/151.0',
+      url
+    ], { timeout: 30000 });
+
+    let stdout = '';
+    let stderr = '';
+
+    proc.stdout.on('data', (d) => { stdout += d.toString(); });
+    proc.stderr.on('data', (d) => { stderr += d.toString(); });
+
+    proc.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(stderr.trim() || `ffprobe exited with code ${code}`));
+        return;
+      }
+      try {
+        const data = JSON.parse(stdout);
+        const dur = parseFloat(data?.format?.duration);
+        const streams = data?.streams || [];
+
+        // Collect audio streams. `index` here is the ffprobe GLOBAL stream index
+        // (e.g. 0=video, 1=audio#1, 2=audio#2) — ffmpeg's `-map 0:a:N` instead
+        // expects the Nth AUDIO stream, so we renumber sequentially.
+        let audioOrdinal = 0;
+        const audioTracks = [];
+        let videoInfo = null;
+        for (const s of streams) {
+          if (s.codec_type === 'video' && !videoInfo) {
+            const fpsParts = (s.r_frame_rate || '0/1').split('/');
+            const fps = fpsParts.length === 2 && parseInt(fpsParts[1]) > 0
+              ? Math.round(parseInt(fpsParts[0]) / parseInt(fpsParts[1]))
+              : 0;
+            videoInfo = {
+              codec: s.codec_name || '',
+              width: s.width || 0,
+              height: s.height || 0,
+              fps,
+            };
+          }
+          if (s.codec_type !== 'audio') continue;
+          audioTracks.push({
+            index: audioOrdinal++,          // index for -map 0:a:N
+            streamIndex: s.index,           // global ffprobe index
+            language: s.tags?.language || '',
+            title: s.tags?.title || '',
+            channels: s.channels || 2,
+            isDefault: !!(s.disposition && s.disposition.default),
+          });
+        }
+
+        resolve({
+          duration: isFinite(dur) && dur > 0 ? dur : 0,
+          video: videoInfo,
+          audioTracks,
+        });
+      } catch (e) {
+        reject(e);
+      }
+    });
+
+    proc.on('error', reject);
+  });
 }

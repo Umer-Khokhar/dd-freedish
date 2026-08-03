@@ -38,6 +38,7 @@ export default function WatchView({ type, id }) {
   const [item, setItem] = useState(null);
   const [logoError, setLogoError] = useState(false);
   const [selectedEpisode, setSelectedEpisode] = useState(null);
+  const [selectedSeason, setSelectedSeason] = useState(null);
   const [viewerCount] = useState(() => Math.floor(Math.random() * 5000) + 1000);
 
   // Resolve file + varname inside the effect so the dep array size is
@@ -79,7 +80,39 @@ export default function WatchView({ type, id }) {
     return items.filter((e) => (e.series || e.name) === (item.series || item.name));
   }, [items, item, type]);
 
+  // Unique seasons sorted, with "Specials" (null) at the end
+  const seasons = useMemo(() => {
+    const seasonSet = new Set();
+    for (const ep of episodes) {
+      if (ep.season != null) seasonSet.add(ep.season);
+    }
+    return Array.from(seasonSet).sort((a, b) => a - b);
+  }, [episodes]);
+
+  const hasSeasons = seasons.length > 1;
+
+  // Episodes for the currently selected season (or all if no season selector needed)
+  const visibleEpisodes = useMemo(() => {
+    if (!hasSeasons) return episodes;
+    if (selectedSeason == null) return episodes;
+    return episodes.filter((ep) => ep.season === selectedSeason);
+  }, [episodes, selectedSeason, hasSeasons]);
+
   const activeEpisode = selectedEpisode || item;
+
+  // Auto-select the season of the currently playing episode
+  useEffect(() => {
+    if (hasSeasons && activeEpisode?.season != null && selectedSeason === null) {
+      setSelectedSeason(activeEpisode.season);
+    }
+  }, [activeEpisode, hasSeasons, selectedSeason]);
+
+  // When user picks a new episode, sync the season tab if needed
+  useEffect(() => {
+    if (hasSeasons && selectedEpisode?.season != null) {
+      setSelectedSeason(selectedEpisode.season);
+    }
+  }, [selectedEpisode, hasSeasons]);
 
   // Remote / keyboard back
   useEffect(() => {
@@ -192,7 +225,7 @@ export default function WatchView({ type, id }) {
                       )}
                       {type === "series" && (
                         <span className="px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest bg-[var(--surface-2)] border border-[var(--border)] text-[var(--muted)]">
-                          {episodes.length} Episodes
+                          {seasons.length > 0 ? `${seasons.length} Season${seasons.length > 1 ? "s" : ""} · ` : ""}{episodes.length} Episodes
                         </span>
                       )}
                     </div>
@@ -225,12 +258,53 @@ export default function WatchView({ type, id }) {
         {/* Series episode list */}
         {type === "series" && episodes.length > 0 && (
           <div className="pb-20 animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+            {/* Season tabs */}
+            {hasSeasons && (
+              <div className="mb-6">
+                <h2 className="text-xl md:text-2xl font-black mb-4 flex items-center gap-4">
+                  <span className="w-1.5 h-6 rounded-full bg-brand-gradient inline-block" />
+                  Seasons
+                </h2>
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  <button
+                    onClick={() => setSelectedSeason(null)}
+                    className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 border ${
+                      selectedSeason === null
+                        ? "bg-brand-gradient text-white border-transparent shadow-lg shadow-fuchsia-500/20"
+                        : "bg-[var(--surface)] border-[var(--border)] text-[var(--muted)] hover:border-fuchsia-500/40 hover:text-[var(--text)]"
+                    }`}
+                  >
+                    All ({episodes.length})
+                  </button>
+                  {seasons.map((s) => {
+                    const count = episodes.filter((ep) => ep.season === s).length;
+                    return (
+                      <button
+                        key={s}
+                        onClick={() => setSelectedSeason(s)}
+                        className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 border ${
+                          selectedSeason === s
+                            ? "bg-brand-gradient text-white border-transparent shadow-lg shadow-fuchsia-500/20"
+                            : "bg-[var(--surface)] border-[var(--border)] text-[var(--muted)] hover:border-fuchsia-500/40 hover:text-[var(--text)]"
+                        }`}
+                      >
+                        Season {s} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Episode list */}
             <h2 className="text-xl md:text-2xl font-black mb-6 flex items-center gap-4">
               <span className="w-1.5 h-6 rounded-full bg-brand-gradient inline-block" />
-              Episodes
+              {hasSeasons && selectedSeason != null
+                ? `Season ${selectedSeason} Episodes`
+                : "Episodes"}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {episodes.map((ep, i) => (
+              {visibleEpisodes.map((ep, i) => (
                 <button
                   key={ep.id}
                   onClick={() => {
@@ -254,7 +328,7 @@ export default function WatchView({ type, id }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold truncate">{ep.name}</p>
-                    {ep.season && (
+                    {!hasSeasons && ep.season && (
                       <p className="text-xs text-[var(--muted)] mt-0.5">Season {ep.season}</p>
                     )}
                   </div>
