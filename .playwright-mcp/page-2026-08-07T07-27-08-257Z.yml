@@ -1,0 +1,26 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "Logo" [ref=e7]
+          - generic [ref=e8]:
+            - heading "Streamza" [level=1] [ref=e9]
+            - paragraph [ref=e10]: Live TV
+        - navigation [ref=e11]:
+          - link "Live TV" [ref=e12] [cursor=pointer]:
+            - /url: /live
+        - generic [ref=e13]:
+          - button "Search" [ref=e14]
+          - link "Admin Dashboard" [ref=e18] [cursor=pointer]:
+            - /url: /admin
+          - button "Toggle theme" [ref=e22]
+    - main [ref=e29]:
+      - generic [ref=e37]:
+        - paragraph [ref=e38]: Welcome to
+        - heading "Streamza" [level=1] [ref=e39]
+        - paragraph [ref=e40]: Your World of Live Entertainment.Every Channel. One Place.
+        - link "Browse Channels" [ref=e42] [cursor=pointer]:
+          - /url: /live
+  - button "Open Next.js Dev Tools" [ref=e62] [cursor=pointer]

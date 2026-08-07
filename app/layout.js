@@ -1,6 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "../components/ThemeProvider";
 import Header from "../components/Header";
 
 const geistSans = Geist({
@@ -14,19 +13,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Ultra DISHTV - Premium OTT Streaming",
+  title: "Streamza - Live TV Streaming",
   description:
-    "Stream live kids channels, Hindi anime & animated series, and animated movies in one cinematic OTT experience.",
+    "Stream live TV channels across entertainment, sports, kids cartoon, news, and more.",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" data-scroll-behavior="smooth" className={`dark ${geistSans.variable} ${geistMono.variable}`}>
       <body className="bg-[var(--bg)] text-[var(--text)] antialiased font-sans">
-        <ThemeProvider>
-          <Header />
-          <main>{children}</main>
-        </ThemeProvider>
+        <Header />
+        <main>{children}</main>
       </body>
     </html>
   );

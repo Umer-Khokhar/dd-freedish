@@ -1,0 +1,9 @@
+[    1292ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[    1369ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[    4506ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0
+[    4507ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0
+[   19126ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted by a new load request. https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   19149ms] [LOG] [MSEController] > MediaSource onSourceOpen @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   27566ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   29368ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0
+[   29374ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0

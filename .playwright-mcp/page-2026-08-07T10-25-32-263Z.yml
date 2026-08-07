@@ -1,0 +1,28 @@
+- generic [active] [ref=f18e1]:
+  - banner [ref=f18e2]:
+    - generic [ref=f18e3]:
+      - link [ref=f18e4] [cursor=pointer]:
+        - /url: /
+        - img "Logo" [ref=f18e6]
+        - generic [ref=f18e7]:
+          - heading "Streamza" [level=1] [ref=f18e8]
+          - paragraph [ref=f18e9]: LIVE TV
+      - generic [ref=f18e10]:
+        - navigation [ref=f18e11]:
+          - link "All Channels" [ref=f18e12] [cursor=pointer]:
+            - /url: /live
+          - link "Categories" [ref=f18e13] [cursor=pointer]:
+            - /url: /#categories
+        - button "Search" [ref=f18e14]:
+          - generic [ref=f18e19]: ⌘K
+  - main [ref=f18e20]:
+    - generic [ref=f18e21]:
+      - generic [ref=f18e24]:
+        - generic [ref=f18e25]:
+          - generic [ref=f18e26]: Live
+          - generic [ref=f18e28]: Loading…
+        - heading "Live TV" [level=1] [ref=f18e29]
+        - paragraph [ref=f18e30]: Browse all live TV channels. Filter by category, then jump straight into the stream.
+        - textbox "Search channels…" [ref=f18e36]
+      - button "All" [ref=f18e39]
+  - button "Open Next.js Dev Tools" [ref=f18e64] [cursor=pointer]

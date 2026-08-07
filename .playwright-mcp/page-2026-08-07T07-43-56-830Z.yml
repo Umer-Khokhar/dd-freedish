@@ -1,0 +1,344 @@
+- generic [active] [ref=f3e1]:
+  - generic [ref=f3e2]:
+    - banner [ref=f3e3]:
+      - generic [ref=f3e4]:
+        - link [ref=f3e5] [cursor=pointer]:
+          - /url: /
+          - img "tapmad" [ref=f3e6]
+        - navigation [ref=f3e7]:
+          - generic [ref=f3e8]:
+            - link "Home" [ref=f3e9] [cursor=pointer]:
+              - /url: /
+            - link "Sports" [ref=f3e10] [cursor=pointer]:
+              - /url: /sports
+            - link "Entertainment" [ref=f3e11] [cursor=pointer]:
+              - /url: /entertainment/movies
+            - link "Live TV" [ref=f3e12] [cursor=pointer]:
+              - /url: /live
+            - link "Upcoming" [ref=f3e13] [cursor=pointer]:
+              - /url: /upcoming
+          - button "Search Sports and more..." [ref=f3e14] [cursor=pointer]
+          - generic [ref=f3e17]:
+            - generic [ref=f3e18]:
+              - link "Live Scores" [ref=f3e19] [cursor=pointer]:
+                - /url: /live-score
+              - generic [ref=f3e20]: NEW
+            - link "Tapshop" [ref=f3e22] [cursor=pointer]:
+              - /url: /tapshop
+            - link "tapminis" [ref=f3e24] [cursor=pointer]:
+              - /url: /short-videos
+        - button "Login" [ref=f3e28] [cursor=pointer]
+    - main [ref=f3e29]:
+      - generic [ref=f3e30]:
+        - generic [ref=f3e31]:
+          - generic [ref=f3e33]:
+            - img "Esports World Cup 2026 (EWC)"
+          - generic [ref=f3e35]:
+            - img "Rap Icon Pakistan"
+          - generic [ref=f3e37]:
+            - img "UFC 2026"
+          - generic [ref=f3e38]:
+            - generic [ref=f3e39]:
+              - img "Caribbean Premier League 2026"
+            - generic:
+              - heading "Caribbean Premier League 2026" [level=2]
+              - paragraph: 8th Aug - 21st Sep
+              - link "WATCH NOW" [ref=f3e40] [cursor=pointer]:
+                - /url: /sports/caribbean-premier-league-2026/731/1
+          - generic [ref=f3e42]:
+            - img "FIH Hockey World Cup 2026"
+          - generic [ref=f3e44]:
+            - img "The Hundred Men's Competition 2026"
+          - generic [ref=f3e46]:
+            - img "The Hundred Women's Competition 2026"
+          - generic [ref=f3e48]:
+            - img "Afghanistan Tour of Ireland 2026"
+        - generic [ref=f3e49] [cursor=pointer]
+        - generic [ref=f3e50] [cursor=pointer]
+      - generic [ref=f3e51]:
+        - link [ref=f3e52] [cursor=pointer]:
+          - /url: /sports/upcoming/100065
+          - heading "Upcoming Sports Premium" [level=2] [ref=f3e53]
+        - generic [ref=f3e54]:
+          - generic [ref=f3e55]:
+            - link "Ireland vs Afghanistan Subscribe to Unlock Premium Icon 7 Aug 2026 | 2:45 PM Ireland vs Afghanistan 2nd ODI - Afghanistan Tour of Ireland 2026" [ref=f3e57] [cursor=pointer]:
+              - /url: /watch/ireland-vs-afghanistan-2nd-odi-live/1157231
+              - generic [ref=f3e58]:
+                - img "Ireland vs Afghanistan" [ref=f3e60]
+                - generic [ref=f3e61]: Subscribe to Unlock
+                - img "Premium Icon" [ref=f3e63]
+                - generic [ref=f3e64]: 7 Aug 2026 | 2:45 PM
+              - generic [ref=f3e65]:
+                - heading "Ireland vs Afghanistan" [level=3] [ref=f3e66]
+                - paragraph [ref=f3e67]: 2nd ODI - Afghanistan Tour of Ireland 2026
+            - link "Birmingham Pheonix vs Sunrisers Leeds Subscribe to Unlock Premium Icon 7 Aug 2026 | 10:30 PM Birmingham Pheonix vs Sunrisers Leeds Group Stage - The Hundred Men's Competition 2026" [ref=f3e69] [cursor=pointer]:
+              - /url: /watch/the-hundred-men-2026-live/1151381
+              - generic [ref=f3e70]:
+                - img "Birmingham Pheonix vs Sunrisers Leeds" [ref=f3e72]
+                - generic [ref=f3e73]: Subscribe to Unlock
+                - img "Premium Icon" [ref=f3e75]
+                - generic [ref=f3e76]: 7 Aug 2026 | 10:30 PM
+              - generic [ref=f3e77]:
+                - heading "Birmingham Pheonix vs Sunrisers Leeds" [level=3] [ref=f3e78]
+                - paragraph [ref=f3e79]: Group Stage - The Hundred Men's Competition 2026
+            - link "Battle vs Rosta Subscribe to Unlock Premium Icon 8 Aug 2026 | 3:30 AM Battle vs Rosta Global 12 - PFL 2026" [ref=f3e81] [cursor=pointer]:
+              - /url: /watch/pfl-2026-battle-vs-rosta-live/1157321
+              - generic [ref=f3e82]:
+                - img "Battle vs Rosta" [ref=f3e84]
+                - generic [ref=f3e85]: Subscribe to Unlock
+                - img "Premium Icon" [ref=f3e87]
+                - generic [ref=f3e88]: 8 Aug 2026 | 3:30 AM
+              - generic [ref=f3e89]:
+                - heading "Battle vs Rosta" [level=3] [ref=f3e90]
+                - paragraph [ref=f3e91]: Global 12 - PFL 2026
+            - link "Antigua and Barbuda Falcons vs Jamaica Kingsmen Subscribe to Unlock Premium Icon 8 Aug 2026 | 4:00 AM Antigua and Barbuda Falcons vs Jamaica Kingsmen Group Stage - Caribbean Premier League 2026" [ref=f3e93] [cursor=pointer]:
+              - /url: /watch/antigua-and-barbuda-falcons-vs-jamaica-kingsmen-1st-t20-live/1157371
+              - generic [ref=f3e94]:
+                - img "Antigua and Barbuda Falcons vs Jamaica Kingsmen" [ref=f3e96]
+                - generic [ref=f3e97]: Subscribe to Unlock
+                - img "Premium Icon" [ref=f3e99]
+                - generic [ref=f3e100]: 8 Aug 2026 | 4:00 AM
+              - generic [ref=f3e101]:
+                - heading "Antigua and Barbuda Falcons vs Jamaica Kingsmen" [level=3] [ref=f3e102]
+                - paragraph [ref=f3e103]: Group Stage - Caribbean Premier League 2026
+            - link "St Kitts and Nevis Patriots vs Trinbago Knight Riders Subscribe to Unlock Premium Icon 9 Aug 2026 | 4:00 AM St Kitts and Nevis Patriots vs Trinbago Knight Riders Group Stage - Caribbean Premier League 2026" [ref=f3e105] [cursor=pointer]:
+              - /url: /watch/st-kitts-and-nevis-patriots-vs-trinbago-knight-riders-2nd-t20-live/1157381
+              - generic [ref=f3e106]:
+                - img "St Kitts and Nevis Patriots vs Trinbago Knight Riders" [ref=f3e108]
+                - generic [ref=f3e109]: Subscribe to Unlock
+                - img "Premium Icon" [ref=f3e111]
+                - generic [ref=f3e112]: 9 Aug 2026 | 4:00 AM
+              - generic [ref=f3e113]:
+                - heading "St Kitts and Nevis Patriots vs Trinbago Knight Riders" [level=3] [ref=f3e114]
+                - paragraph [ref=f3e115]: Group Stage - Caribbean Premier League 2026
+            - link "Gamrot vs Salkilld Subscribe to Unlock Premium Icon 9 Aug 2026 | 5:00 AM Gamrot vs Salkilld Fight Night - UFC 2026" [ref=f3e117] [cursor=pointer]:
+              - /url: /watch/ufc-fight-night-gamrot-vs-salkilld-live/1155701
+              - generic [ref=f3e118]:
+                - img "Gamrot vs Salkilld" [ref=f3e120]
+                - generic [ref=f3e121]: Subscribe to Unlock
+                - img "Premium Icon" [ref=f3e123]
+                - generic [ref=f3e124]: 9 Aug 2026 | 5:00 AM
+              - generic [ref=f3e125]:
+                - heading "Gamrot vs Salkilld" [level=3] [ref=f3e126]
+                - paragraph [ref=f3e127]: Fight Night - UFC 2026
+          - generic [ref=f3e128] [cursor=pointer]
+          - generic [ref=f3e129] [cursor=pointer]
+        - link [ref=f3e130] [cursor=pointer]:
+          - /url: /more/trending-now-on-tapmad/341/4
+          - heading "Trending Now on tapmad" [level=2] [ref=f3e131]:
+            - text: Trending Now on
+            - generic [ref=f3e132]: tapmad
+        - generic [ref=f3e133]:
+          - generic [ref=f3e134]:
+            - link [ref=f3e136] [cursor=pointer]:
+              - /url: /watch/the-hundred-women-s-2026-london-spirits-vs-mi-london/13383630
+              - img "The Hundred Women's 2026 - London Spirits vs MI London" [ref=f3e139]
+            - link [ref=f3e141] [cursor=pointer]:
+              - /url: /watch/tp-52-super-series-episode-3-grand-prix/13383530
+              - img "TP 52 Super Series - Episode 3 - GRAND PRIX" [ref=f3e144]
+            - link [ref=f3e146] [cursor=pointer]:
+              - /url: /watch/the-hundred-men-s-2026-trent-rockets-vs-birmingham-pheonix/13383280
+              - img "The Hundred Men's 2026 - Trent Rockets vs Birmingham Pheonix" [ref=f3e149]
+            - link [ref=f3e151] [cursor=pointer]:
+              - /url: /watch/west-indies-vs-pakistan-2nd-test-day-4-highlights/13383240
+              - img "West Indies vs Pakistan - 2nd Test - Day 4 - Highlights" [ref=f3e154]
+            - link [ref=f3e156] [cursor=pointer]:
+              - /url: /watch/the-hundred-women-s-2026-trent-rockets-vs-birmingham-pheonix/13383260
+              - img "The Hundred Women's 2026 - Trent Rockets vs Birmingham Pheonix" [ref=f3e159]
+            - link [ref=f3e161] [cursor=pointer]:
+              - /url: /watch/the-hundred-men-s-2026-manchester-super-giants-vs-welsh-fire/13383270
+              - img "The Hundred Men's 2026 - Manchester Super Giants vs Welsh Fire" [ref=f3e164]
+            - link [ref=f3e166] [cursor=pointer]:
+              - /url: /watch/the-hundred-women-s-2026-manchester-super-giants-vs-welsh-fire/13383250
+              - img "The Hundred Women's 2026 - Manchester Super Giants vs Welsh Fire" [ref=f3e169]
+            - link [ref=f3e171] [cursor=pointer]:
+              - /url: /watch/drift-fest-2-0/13383230
+              - img "Drift Fest 2.0" [ref=f3e174]
+            - link [ref=f3e176] [cursor=pointer]:
+              - /url: /watch/the-hundred-men-s-2026-sunrisers-leeds-vs-london-spirit/13383130
+              - img "The Hundred Men's 2026 - Sunrisers leeds vs London Spirit" [ref=f3e179]
+            - link [ref=f3e181] [cursor=pointer]:
+              - /url: /watch/the-hundred-women-s-2026-sunrisers-leeds-vs-london-spirit/13383120
+              - img "The Hundred Women's 2026 - Sunrisers leeds vs London Spirit" [ref=f3e184]
+            - link [ref=f3e186] [cursor=pointer]:
+              - /url: /watch/west-indies-vs-pakistan-2nd-test-day-3-highlights/13383200
+              - img "West Indies vs Pakistan - 2nd Test - Day 3 - Highlights" [ref=f3e189]
+            - link [ref=f3e191] [cursor=pointer]:
+              - /url: /watch/sri-lanka-w-vs-pakistan-w-3rd-t20i/13382930
+              - img "Sri Lanka W vs Pakistan W - 3rd T20i" [ref=f3e194]
+            - link [ref=f3e196] [cursor=pointer]:
+              - /url: /watch/the-hundred-men-s-2026-welsh-fire-vs-southern-brave/13382590
+              - img "The Hundred Men's 2026 - Welsh Fire vs Southern Brave" [ref=f3e199]
+            - link [ref=f3e201] [cursor=pointer]:
+              - /url: /watch/the-hundred-women-s-2026-welsh-fire-vs-southern-brave/13382580
+              - img "The Hundred Women's 2026 - Welsh Fire vs Southern Brave" [ref=f3e204]
+            - link [ref=f3e206] [cursor=pointer]:
+              - /url: /watch/west-indies-vs-pakistan-2nd-test-day-2-highlights/13382820
+              - img "West Indies vs Pakistan - 2nd Test - Day 2 - Highlights" [ref=f3e209]
+            - link [ref=f3e211] [cursor=pointer]:
+              - /url: /watch/the-hundred-men-s-2026-mi-london-vs-manchester-super-giants/13381820
+              - img "The Hundred Men's 2026 - MI London vs Manchester Super Giants" [ref=f3e214]
+            - link [ref=f3e216] [cursor=pointer]:
+              - /url: /watch/west-indies-vs-pakistan-2nd-test-day-1-highlights/13382430
+              - img "West Indies vs Pakistan - 2nd Test - Day 1 - Highlights" [ref=f3e219]
+          - generic [ref=f3e220] [cursor=pointer]
+          - generic [ref=f3e221] [cursor=pointer]
+        - link [ref=f3e222] [cursor=pointer]:
+          - /url: /sports/upcoming/100061
+          - heading "Upcoming Sports Free" [level=2] [ref=f3e223]
+        - generic [ref=f3e224]:
+          - generic [ref=f3e225]:
+            - link "Watch Free - Ireland vs Afghanistan 7 Aug 2026 | 2:45 PM Watch Free - Ireland vs Afghanistan 2nd ODI - Afghanistan Tour of Ireland 2026" [ref=f3e227] [cursor=pointer]:
+              - /url: /watch/watch-free-ireland-vs-afghanistan-2nd-odi-live/1157281
+              - generic [ref=f3e228]:
+                - img "Watch Free - Ireland vs Afghanistan" [ref=f3e230]
+                - generic [ref=f3e231]: 7 Aug 2026 | 2:45 PM
+              - generic [ref=f3e232]:
+                - heading "Watch Free - Ireland vs Afghanistan" [level=3] [ref=f3e233]
+                - paragraph [ref=f3e234]: 2nd ODI - Afghanistan Tour of Ireland 2026
+            - link "PUBG Mobile - Day 2 7 Aug 2026 | 4:00 PM PUBG Mobile - Day 2 Group Stage - Esports World Cup 2026 (EWC)" [ref=f3e236] [cursor=pointer]:
+              - /url: /watch/esports-world-cup-2026-pubg-mobile-live-streaming/1157051
+              - generic [ref=f3e237]:
+                - img "PUBG Mobile - Day 2" [ref=f3e239]
+                - generic [ref=f3e240]: 7 Aug 2026 | 4:00 PM
+              - generic [ref=f3e241]:
+                - heading "PUBG Mobile - Day 2" [level=3] [ref=f3e242]
+                - paragraph [ref=f3e243]: Group Stage - Esports World Cup 2026 (EWC)
+            - link "Tekken 8 - Day 3 7 Aug 2026 | 5:00 PM Tekken 8 - Day 3 Group Stage - Esports World Cup 2026 (EWC)" [ref=f3e245] [cursor=pointer]:
+              - /url: /watch/esports-world-cup-2026-tekken8-live-streaming/1156981
+              - generic [ref=f3e246]:
+                - img "Tekken 8 - Day 3" [ref=f3e248]
+                - generic [ref=f3e249]: 7 Aug 2026 | 5:00 PM
+              - generic [ref=f3e250]:
+                - heading "Tekken 8 - Day 3" [level=3] [ref=f3e251]
+                - paragraph [ref=f3e252]: Group Stage - Esports World Cup 2026 (EWC)
+            - link "Birmingham Pheonix vs Sunrisers Leeds - Women 7 Aug 2026 | 7:00 PM Birmingham Pheonix vs Sunrisers Leeds - Women Group Stage - The Hundred Women's Competition 2026" [ref=f3e254] [cursor=pointer]:
+              - /url: /watch/the-hundred-women-2026-live/1151721
+              - generic [ref=f3e255]:
+                - img "Birmingham Pheonix vs Sunrisers Leeds - Women" [ref=f3e257]
+                - generic [ref=f3e258]: 7 Aug 2026 | 7:00 PM
+              - generic [ref=f3e259]:
+                - heading "Birmingham Pheonix vs Sunrisers Leeds - Women" [level=3] [ref=f3e260]
+                - paragraph [ref=f3e261]: Group Stage - The Hundred Women's Competition 2026
+            - link "Watch Free - Birmingham Pheonix vs Sunrisers Leeds 7 Aug 2026 | 10:30 PM Watch Free - Birmingham Pheonix vs Sunrisers Leeds Group Stage - The Hundred Men's Competition 2026" [ref=f3e263] [cursor=pointer]:
+              - /url: /watch/watch-free-the-hundred-men-2026-live/1154491
+              - generic [ref=f3e264]:
+                - img "Watch Free - Birmingham Pheonix vs Sunrisers Leeds" [ref=f3e266]
+                - generic [ref=f3e267]: 7 Aug 2026 | 10:30 PM
+              - generic [ref=f3e268]:
+                - heading "Watch Free - Birmingham Pheonix vs Sunrisers Leeds" [level=3] [ref=f3e269]
+                - paragraph [ref=f3e270]: Group Stage - The Hundred Men's Competition 2026
+            - link "Watch Free - Antigua and Barbuda Falcons vs Jamaica Kingsmen 8 Aug 2026 | 4:00 AM Watch Free - Antigua and Barbuda Falcons vs Jamaica Kingsmen Group Stage - Caribbean Premier League 2026" [ref=f3e272] [cursor=pointer]:
+              - /url: /watch/watch-free-antigua-and-barbuda-falcons-vs-jamaica-kingsmen-1st-t20-live/1158151
+              - generic [ref=f3e273]:
+                - img "Watch Free - Antigua and Barbuda Falcons vs Jamaica Kingsmen" [ref=f3e275]
+                - generic [ref=f3e276]: 8 Aug 2026 | 4:00 AM
+              - generic [ref=f3e277]:
+                - heading "Watch Free - Antigua and Barbuda Falcons vs Jamaica Kingsmen" [level=3] [ref=f3e278]
+                - paragraph [ref=f3e279]: Group Stage - Caribbean Premier League 2026
+            - link "MI London vs Trent Rockets - Women 8 Aug 2026 | 3:00 PM MI London vs Trent Rockets - Women Group Stage - The Hundred Women's Competition 2026" [ref=f3e281] [cursor=pointer]:
+              - /url: /watch/the-hundred-women-2026-live/1151731
+              - generic [ref=f3e282]:
+                - img "MI London vs Trent Rockets - Women" [ref=f3e284]
+                - generic [ref=f3e285]: 8 Aug 2026 | 3:00 PM
+              - generic [ref=f3e286]:
+                - heading "MI London vs Trent Rockets - Women" [level=3] [ref=f3e287]
+                - paragraph [ref=f3e288]: Group Stage - The Hundred Women's Competition 2026
+            - link "Watch Free - St Kitts and Nevis Patriots vs Trinbago Knight Riders 9 Aug 2026 | 4:00 AM Watch Free - St Kitts and Nevis Patriots vs Trinbago Knight Riders Group Stage - Caribbean Premier League 2026" [ref=f3e290] [cursor=pointer]:
+              - /url: /watch/watch-free-st-kitts-and-nevis-patriots-vs-trinbago-knight-riders-2nd-t20-live/1158161
+              - generic [ref=f3e291]:
+                - img "Watch Free - St Kitts and Nevis Patriots vs Trinbago Knight Riders" [ref=f3e293]
+                - generic [ref=f3e294]: 9 Aug 2026 | 4:00 AM
+              - generic [ref=f3e295]:
+                - heading "Watch Free - St Kitts and Nevis Patriots vs Trinbago Knight Riders" [level=3] [ref=f3e296]
+                - paragraph [ref=f3e297]: Group Stage - Caribbean Premier League 2026
+          - generic [ref=f3e298] [cursor=pointer]
+          - generic [ref=f3e299] [cursor=pointer]
+        - heading "Quick Hits - REELS" [level=2] [ref=f3e301]
+        - generic [ref=f3e302]:
+          - generic [ref=f3e303]:
+            - link [ref=f3e305] [cursor=pointer]:
+              - /url: /short-sports/tekken-8-day-2-is-here-338358
+              - img "TEKKEN 8 Day 2 Is Here" [ref=f3e308]
+            - link [ref=f3e310] [cursor=pointer]:
+              - /url: /short-sports/the-stage-is-set-for-pubg-day-1-338354
+              - img "The Stage Is Set for PUBG Day 1" [ref=f3e313]
+            - link [ref=f3e315] [cursor=pointer]:
+              - /url: /short-sports/ali-usman-finishes-the-job-roach-s-stumps-go-flying-338329
+              - img "ALI USMAN FINISHES THE JOB! Roach's Stumps Go Flying" [ref=f3e318]
+            - link [ref=f3e320] [cursor=pointer]:
+              - /url: /short-sports/feng-mulgold-vs-reina-yagami-6-hit-tornado-combo-into-a-k-o-338343
+              - img "Feng (Mulgold) vs Reina (Yagami), 6-hit Tornado combo into a K.O." [ref=f3e323]
+            - link [ref=f3e325] [cursor=pointer]:
+              - /url: /short-sports/babar-azam-falls-short-of-a-century-338294
+              - img "Babar Azam Falls Short of a Century" [ref=f3e328]
+            - link [ref=f3e330] [cursor=pointer]:
+              - /url: /short-sports/ali-usman-ends-greaves-brilliant-knock-338260
+              - img "Ali Usman Ends Greaves Brilliant Knock" [ref=f3e333]
+            - link [ref=f3e335] [cursor=pointer]:
+              - /url: /short-sports/brandon-king-drives-it-to-the-boundary-338233
+              - img "Brandon King Drives It to the Boundary" [ref=f3e338]
+            - link [ref=f3e340] [cursor=pointer]:
+              - /url: /short-sports/green-flag-chaos-338219
+              - img "Green flag chaos" [ref=f3e343]
+            - link [ref=f3e345] [cursor=pointer]:
+              - /url: /short-sports/rr-lloyd-in-toyota-338197
+              - img "RR Lloyd in Toyota" [ref=f3e348]
+            - link [ref=f3e350] [cursor=pointer]:
+              - /url: /short-sports/pakistan-vs-bangladesh-final-teams-warming-up-338096
+              - img "Pakistan vs Bangladesh Final – Teams Warming Up" [ref=f3e353]
+            - link [ref=f3e355] [cursor=pointer]:
+              - /url: /short-sports/teams-warm-up-for-the-third-place-clash-338092
+              - img "Teams Warm Up for the Third Place Clash" [ref=f3e358]
+            - link [ref=f3e360] [cursor=pointer]:
+              - /url: /short-sports/pakistan-finally-break-through-338066
+              - img "Pakistan Finally Break Through!" [ref=f3e363]
+            - link [ref=f3e365] [cursor=pointer]:
+              - /url: /short-sports/teams-getting-ready-for-the-clash-338044
+              - img "Teams Getting Ready for the Clash" [ref=f3e368]
+            - link [ref=f3e370] [cursor=pointer]:
+              - /url: /short-sports/bangladesh-starts-strong-338040
+              - img "Bangladesh Starts Strong!" [ref=f3e373]
+            - link [ref=f3e375] [cursor=pointer]:
+              - /url: /short-sports/point-for-kazakhstan-338036
+              - img "Point for Kazakhstan" [ref=f3e378]
+            - link [ref=f3e380] [cursor=pointer]:
+              - /url: /short-sports/shan-masood-brings-up-a-brilliant-century-338008
+              - img "Shan Masood Brings Up a Brilliant Century" [ref=f3e383]
+            - link [ref=f3e385] [cursor=pointer]:
+              - /url: /short-sports/pakistan-vs-kazakhstan-match-about-to-begin-337998
+              - img "Pakistan vs Kazakhstan – Match About to Begin" [ref=f3e388]
+          - generic [ref=f3e389] [cursor=pointer]
+          - generic [ref=f3e390] [cursor=pointer]
+    - contentinfo [ref=f3e395]:
+      - generic [ref=f3e396]:
+        - strong [ref=f3e397]: Connect with us
+        - link "Facebook" [ref=f3e398] [cursor=pointer]:
+          - /url: https://www.facebook.com/tapmadsports
+        - link "Twitter" [ref=f3e401] [cursor=pointer]:
+          - /url: https://twitter.com/tapmadtv
+        - link "Instagram" [ref=f3e404] [cursor=pointer]:
+          - /url: https://www.instagram.com/tapmad.entertainment/
+        - link "Youtube" [ref=f3e407] [cursor=pointer]:
+          - /url: https://www.youtube.com/channel/UCPHOf3lVS8bUSwR1h55EO6g
+        - link "Linkedin" [ref=f3e410] [cursor=pointer]:
+          - /url: https://www.linkedin.com/company/tapmad
+      - generic [ref=f3e413]:
+        - strong [ref=f3e414]: Tapmad Legal Center
+        - navigation [ref=f3e416]:
+          - link "Legal Center" [ref=f3e418] [cursor=pointer]:
+            - /url: /legal-center/faqs
+        - link "Blog" [ref=f3e422] [cursor=pointer]:
+          - /url: /blog
+      - generic [ref=f3e426]:
+        - strong [ref=f3e427]: Download our app
+        - generic [ref=f3e428]:
+          - link "tapmad on Apple Store" [ref=f3e429] [cursor=pointer]:
+            - /url: https://apps.apple.com/pk/app/tapmad/id1317253610
+            - img "tapmad - iOS app" [ref=f3e430]
+          - link "tapmad on Google Play Store" [ref=f3e456] [cursor=pointer]:
+            - /url: https://play.google.com/store/apps/details?id=com.tapmad.tapmadtv&hl=en
+            - img "tapmad - Android app" [ref=f3e457]
+          - link "tapmad on Huawei App Gallery" [ref=f3e465] [cursor=pointer]:
+            - /url: https://appgallery.huawei.com/app/C100909517
+  - alert [ref=f3e495]

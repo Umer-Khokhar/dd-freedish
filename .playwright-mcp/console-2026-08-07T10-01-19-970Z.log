@@ -1,0 +1,16 @@
+[    3535ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[    3627ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[    5750ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0
+[    5755ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0
+[   69920ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted by a new load request. https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   70016ms] [LOG] [MSEController] > MediaSource onSourceOpen @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   80609ms] [LOG] [TSDemuxer] > Parsed first PAT: {"program_pmt_pid":{"1":4096},"version_number":0} @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   80610ms] [LOG] [TSDemuxer] > Parsed first PMT: {"pid_stream_type":{"256":27,"257":15},"common_pids":{"h264":256,"adts_aac":257},"pes_private_data_pids":{},"timed_id3_pids":{},"synchronous_klv_pids":{},"asynchronous_klv_pids":{},"scte_35_pids":{},"smpte2038_pids":{},"program_number":1,"version_number":0,"pcr_pid":256} @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   80614ms] [LOG] [TSDemuxer] > Generated first AVCDecoderConfigurationRecord for mimeType: avc1.42c01e @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   80618ms] [LOG] [TSDemuxer] > Generated first AudioSpecificConfig for mimeType: mp4a.40.5 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   80631ms] [LOG] [MSEController] > Received Initialization Segment, mimeType: video/mp4;codecs=avc1.42c01e @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   80634ms] [LOG] [MSEController] > Received Initialization Segment, mimeType: audio/mp4;codecs=mp4a.40.5 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   80705ms] [WARNING] [StartupStallJumper] > Playback seems stuck at 0, seek to 0.023 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   86202ms] [LOG] [MSEController] > MediaSource onSourceEnded @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[  114239ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0
+[  114240ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0

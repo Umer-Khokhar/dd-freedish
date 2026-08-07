@@ -1,0 +1,39 @@
+- generic [active] [ref=f8e1]:
+  - banner [ref=f8e2]:
+    - generic [ref=f8e3]:
+      - link [ref=f8e4] [cursor=pointer]:
+        - /url: /
+        - img "Logo" [ref=f8e6]
+        - generic [ref=f8e7]:
+          - heading "Streamza" [level=1] [ref=f8e8]
+          - paragraph [ref=f8e9]: LIVE TV
+      - generic [ref=f8e10]:
+        - navigation [ref=f8e11]:
+          - link "All Channels" [ref=f8e12] [cursor=pointer]:
+            - /url: /live
+          - link "Categories" [ref=f8e13] [cursor=pointer]:
+            - /url: /#categories
+        - button "Search" [ref=f8e14]:
+          - generic [ref=f8e19]: ⌘K
+  - main [ref=f8e20]:
+    - generic [ref=f8e23]:
+      - img "CPL T20 LIVE" [ref=f8e25]
+      - img "THE HUNDRED" [ref=f8e29]
+      - img "STREAMZA" [ref=f8e33]
+      - generic [ref=f8e37]:
+        - generic [ref=f8e38]: LIVE SPORTS
+        - heading "CPL T20 LIVE" [level=2] [ref=f8e39]
+        - paragraph [ref=f8e40]: Caribbean Premier League 2026
+        - paragraph [ref=f8e41]: Watch all matches live exclusively on Streamza
+        - generic [ref=f8e42]:
+          - link "WATCH NOW" [ref=f8e43] [cursor=pointer]:
+            - /url: /live
+          - link "Browse Channels" [ref=f8e46] [cursor=pointer]:
+            - /url: /live
+      - button "Previous slide" [ref=f8e47]
+      - button "Next slide" [ref=f8e50]
+      - generic [ref=f8e53]:
+        - button "Go to slide 1" [ref=f8e54]
+        - button "Go to slide 2" [ref=f8e55]
+        - button "Go to slide 3" [ref=f8e56]
+  - button "Open Next.js Dev Tools" [ref=f8e76] [cursor=pointer]

@@ -1,0 +1,8 @@
+[    2034ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[    2235ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[    8866ms] [ERROR] Failed to load resource: net::ERR_NAME_NOT_RESOLVED @ http://img-cdn.curl.pk:8880/chimg/7225288462.png:0
+[    8966ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:3000/api/image?url=http%3A%2F%2Fimg-cdn.curl.pk%3A8880%2Fchimg%2F4678899977.png:0
+[    8971ms] [ERROR] Failed to load resource: the server responded with a status of 502 (Bad Gateway) @ http://localhost:3000/api/image?url=http%3A%2F%2Fimg-cdn.curl.pk%3A8880%2Fchannels_icon%2F59975785291.png:0
+[   10901ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[   11262ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0
+[   11264ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0

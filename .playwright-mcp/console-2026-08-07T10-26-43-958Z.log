@@ -1,0 +1,107 @@
+[    1166ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[    1215ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[    4532ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0
+[    4533ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0
+[  499425ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted by a new load request. https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[  499507ms] [LOG] [MSEController] > MediaSource onSourceOpen @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[  528493ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted because the media was removed from the document. https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[  531436ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0
+[  531441ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0
+[  738006ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[  741318ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[  741385ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[  743926ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0
+[  743936ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0
+[ 1245523ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0
+[ 1245528ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0
+[ 1289803ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/9/92/FoxSports503_HD.png/revision/latest/scale-to-width-down/200?cb=20190709144525:0
+[ 1301720ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted by a new load request. https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1301793ms] [LOG] [MSEController] > MediaSource onSourceOpen @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1306509ms] [LOG] [TSDemuxer] > Parsed first PAT: {"program_pmt_pid":{"1":4096},"version_number":0} @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1306513ms] [LOG] [TSDemuxer] > Parsed first PMT: {"pid_stream_type":{"256":27,"257":15},"common_pids":{"h264":256,"adts_aac":257},"pes_private_data_pids":{},"timed_id3_pids":{},"synchronous_klv_pids":{},"asynchronous_klv_pids":{},"scte_35_pids":{},"smpte2038_pids":{},"program_number":1,"version_number":0,"pcr_pid":256} @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1306518ms] [LOG] [TSDemuxer] > Generated first AVCDecoderConfigurationRecord for mimeType: avc1.42c01e @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1306526ms] [LOG] [TSDemuxer] > Generated first AudioSpecificConfig for mimeType: mp4a.40.5 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1306535ms] [LOG] [MSEController] > Received Initialization Segment, mimeType: video/mp4;codecs=avc1.42c01e @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1306536ms] [LOG] [MSEController] > Received Initialization Segment, mimeType: audio/mp4;codecs=mp4a.40.5 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1316311ms] [LOG] [MSEController] > MediaSource onSourceOpen @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1321620ms] [LOG] [TSDemuxer] > Parsed first PAT: {"program_pmt_pid":{"1":4096},"version_number":0} @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1321623ms] [LOG] [TSDemuxer] > Parsed first PMT: {"pid_stream_type":{"256":27,"257":15},"common_pids":{"h264":256,"adts_aac":257},"pes_private_data_pids":{},"timed_id3_pids":{},"synchronous_klv_pids":{},"asynchronous_klv_pids":{},"scte_35_pids":{},"smpte2038_pids":{},"program_number":1,"version_number":0,"pcr_pid":256} @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1321625ms] [LOG] [TSDemuxer] > Generated first AVCDecoderConfigurationRecord for mimeType: avc1.42c01f @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1321627ms] [LOG] [TSDemuxer] > Generated first AudioSpecificConfig for mimeType: mp4a.40.5 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1321629ms] [LOG] [MSEController] > Received Initialization Segment, mimeType: video/mp4;codecs=avc1.42c01f @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1321631ms] [LOG] [MSEController] > Received Initialization Segment, mimeType: audio/mp4;codecs=mp4a.40.5 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1321651ms] [WARNING] [StartupStallJumper] > Playback seems stuck at 0, seek to 0.023 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1349197ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0
+[ 1349200ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0
+[ 1506985ms] [LOG] [MSEController] > MediaSource onSourceOpen @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1631746ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted because the media was removed from the document. https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1634115ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0
+[ 1634118ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0
+[ 1985297ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=h8OYCpFV3A0X1CYCC-g62' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13322
+[ 1987687ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1999360ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 1999475ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 2002401ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0
+[ 2002402ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0
+[ 2359504ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted by a new load request. https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 2359650ms] [LOG] [MSEController] > MediaSource onSourceOpen @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 2516077ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 2516707ms] [LOG] [MSEController] > MediaSource onSourceOpen @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 2643442ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 2643471ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted by a new load request. https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 2643590ms] [LOG] [MSEController] > MediaSource onSourceOpen @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 2742307ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted because the media was removed from the document. https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 2979559ms] [LOG] [MSEController] > MediaSource onSourceOpen @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 2982627ms] ReferenceError: setShowAspectMenu is not defined
+    at onClick (http://localhost:3000/_next/static/chunks/components_VideoPlayer_06ijk5q.js?id=%255Bproject%255D%252Fcomponents%252FVideoPlayer.js+%255Bapp-client%255D+%2528ecmascript%2529:1513:53)
+    at executeDispatch (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10329:13)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at processDispatchQueue (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10355:41)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10633:13
+    at batchedUpdates$1 (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:2253:44)
+    at dispatchEventForPluginEventSystem (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10431:9)
+    at dispatchEvent (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:13002:37)
+    at dispatchDiscreteEvent (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:12984:64)
+[ 3107331ms] ReferenceError: showQualityMenu is not defined
+    at CustomVideoPlayer (http://localhost:3000/_next/static/chunks/components_VideoPlayer_06ijk5q.js?id=%255Bproject%255D%252Fcomponents%252FVideoPlayer.js+%255Bapp-client%255D+%2528ecmascript%2529:1631:45)
+    at Object.react_stack_bottom_frame (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15037:24)
+    at renderWithHooks (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:4620:24)
+    at updateFunctionComponent (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6081:21)
+    at beginWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6691:24)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9555:97)
+    at workLoopSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9449:40)
+    at renderRootSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9433:13)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9098:47)
+    at performSyncWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10263:9)
+    at flushSyncWorkAcrossRoots_impl (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10179:316)
+    at flushSyncWork$1 (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9230:86)
+    at Object.scheduleRefresh (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:299:13)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:391:33
+    at Set.forEach (<anonymous>)
+    at Object.performReactRefresh (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:384:38)
+    at applyUpdate (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:878:31)
+    at http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:886:13
+[ 3107332ms] [WARNING] Autoplay prevented AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22 @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 3111704ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/__nextjs_original-stack-frames:0
+[ 3111717ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_RESET @ http://localhost:3000/__nextjs_font/geist-mono-latin.woff2:0
+[ 3117126ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 3117193ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 3117446ms] ReferenceError: showQualityMenu is not defined
+    at CustomVideoPlayer (http://localhost:3000/_next/static/chunks/components_VideoPlayer_06ijk5q.js:1632:45)
+    at Object.react_stack_bottom_frame (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:15037:24)
+    at renderWithHooks (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:4620:24)
+    at updateFunctionComponent (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6081:21)
+    at beginWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6665:639)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9555:97)
+    at workLoopSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9449:40)
+    at renderRootSync (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9433:13)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9098:47)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:2647:64)
+[ 3136200ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 3136270ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
+[ 3138635ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest/scale-to-width-down/340?cb=20221025083646:0
+[ 3138772ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://static.wikia.nocookie.net/logopedia/images/f/ff/Sony_Sports_Ten_3.png/revision/latest/scale-to-width-down/460?cb=20221025085433:0
+[ 3264789ms] [LOG] [MSEController] > MediaSource onSourceOpen @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:2477
